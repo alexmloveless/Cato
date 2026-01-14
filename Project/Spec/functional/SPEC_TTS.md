@@ -2,7 +2,7 @@
 
 ## Overview
 
-Ocat provides text-to-speech functionality using OpenAI's TTS API to convert assistant responses to spoken audio.
+Cato provides text-to-speech functionality using OpenAI's TTS API to convert assistant responses to spoken audio.
 
 ## Requirements
 
@@ -115,7 +115,7 @@ Audio files are saved to configured directory:
 ### Progress Display
 ```
 🔊 Generating speech using nova voice...
-🎵 Audio saved to: /tmp/ocat_tts_1705123456.mp3
+🎵 Audio saved to: /tmp/cato_tts_1705123456.mp3
 🎧 Playing audio...
 ✅ Audio playback completed
 ```

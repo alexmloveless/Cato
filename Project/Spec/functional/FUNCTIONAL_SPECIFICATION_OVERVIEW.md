@@ -1,8 +1,8 @@
-# Ocat Functional Specification
+# Cato Functional Specification
 
 ## Overview
 
-**Ocat** (Otherworldly Chats at the Terminal) is an interactive command-line LLM chat application with integrated productivity features, file management capabilities, and conversational memory through vector storage.
+**Cato** (Chat at the Terminal Orchestrator) is an interactive command-line LLM chat application with integrated productivity features, file management capabilities, and conversational memory through vector storage.
 
 ## Core Chat Functionality
 
@@ -98,9 +98,9 @@
 ## Configuration & Customization
 
 ### Configuration File
-- **YAML Format**: Comprehensive configuration in `ocat.yaml`
+- **YAML Format**: Comprehensive configuration in `cato.yaml`
 - **Environment Variables**: Support for API keys and overrides
-- **Profile System**: Multiple configuration profiles
+- **Overlay System**: User config overlays defaults, only specify differences
 - **Location Aliases**: Custom path shortcuts
 
 ### CLI Options

@@ -2,19 +2,35 @@
 
 ## Overview
 
-Ocat uses a layered configuration system with the following precedence (highest to lowest):
+Cato uses a layered configuration system with the following precedence (highest to lowest):
 1. Command-line arguments
 2. Environment variables
-3. Configuration file (YAML)
-4. Built-in defaults
+3. User configuration file (YAML)
+4. Default configuration file (YAML with extensive inline documentation)
+
+## Configuration Philosophy
+
+### Overlay Behaviour
+The user configuration file **overlays** the default configuration:
+- User config only needs to specify values that differ from defaults
+- A single key-value pair in user config is sufficient
+- All unspecified values fall back to defaults
+- No hard-coded defaults in code - all defaults stored in default YAML file
+
+### Default Configuration File
+The package includes a default configuration file with:
+- All configuration options
+- Sensible default values
+- Extensive inline comments documenting each option
+- This serves as both default values and user documentation
 
 ## Configuration File
 
 ### File Locations (checked in order)
 1. Path specified via `--config` CLI argument
-2. `~/.ocat/config.yaml`
-3. `./ocat.yaml` (current directory)
-4. `./.ocat.yaml` (current directory, hidden)
+2. `~/.cato/config.yaml`
+3. `./cato.yaml` (current directory)
+4. `./.cato.yaml` (current directory, hidden)
 
 ### File Format
 YAML configuration with nested sections:
@@ -38,7 +54,7 @@ section_2:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| profile_name | string | null | Profile name for display |
+| profile_name | string | null | Human-readable name for this configuration (e.g. "Work", "Personal") |
 | debug | bool | false | Enable comprehensive debug mode |
 
 ### LLM Configuration (`llm`)
@@ -60,7 +76,9 @@ section_2:
 | path | string | ./vector_stores/default/ | - | Storage directory |
 | chat_window | int | -1 | >0 | The number of recent exchanges to maintain in the current chat. This is to limit the size of of the context. A value of -1 means keep all exchanges, |
 | context_results | int | 5 | >0 | Max context exchanges returned |
-| context_similarity_threshold | float | 0.65 | 0.0-1.0 | Minimum similarity for context |
+| context_similarity_threshold | float | 0.65 | 0.0-1.0 | Minimum similarity for context (static threshold) |
+| dynamic_threshold | bool | true | - | Enable dynamic similarity thresholding based on context length |
+| retrieval_strategy | string | default | - | Similarity retrieval strategy (see SPEC_VECTOR_STORE.md) |
 | search_context_window | int | 3 | >0 | The number of recent exchanges to use in the vector for the similarity search |
 
 ### Embedding Configuration (`embedding`)
@@ -91,7 +109,8 @@ section_2:
 | line_width | int | 80 | Terminal width (chars) |
 | exchange_delimiter | string | ─ | Character for separation |
 | exchange_delimiter_length | int | 60 | Delimiter line length |
-| prompt_symbol | string | 🐱 >  | Input prompt |
+| prompt_symbol | string | 🐱 >  | Input prompt (supports Unicode/emoji) |
+| spinner_icon | string | ⠋ | Waiting indicator icon (spinner character) |
 
 
 ### Logging Configuration (`logging`)

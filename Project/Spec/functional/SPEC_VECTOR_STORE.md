@@ -4,6 +4,15 @@
 
 The vector store provides persistent conversation memory using vector embeddings for semantic similarity search. It enables context retrieval from previous conversations and document storage for future reference.
 
+## Critical Performance Requirements
+
+**NEVER load the entire vector store into memory.**
+
+- All queries must be performed on-demand against the database
+- No caching of vector store contents outside current conversation context
+- Startup must not be delayed by vector store loading
+- See TECH_PERFORMANCE.md for detailed performance requirements
+
 ## Storage Backend
 
 ### ChromaDB
@@ -55,14 +64,42 @@ All conversation exchanges are automatically stored (except in dummy mode) for:
 ### Query Process
 1. Query text embedded using same model
 2. ChromaDB performs cosine similarity search
-3. Results filtered by similarity threshold
+3. Results filtered by similarity threshold (static or dynamic)
 4. Top-k results returned
+
+### Retrieval Strategy Architecture
+
+The retrieval system is designed to be **pluggable** to allow experimentation with different strategies and algorithms.
+
+#### Strategy Interface
+All retrieval strategies must implement a common interface:
+- Accept query embedding and parameters
+- Return ranked results with similarity scores
+- Support configuration options
+
+#### Built-in Strategies
+
+| Strategy | Description |
+|----------|-------------|
+| default | Standard cosine similarity with static threshold |
+| dynamic | Adjusts threshold based on context length |
+| (extensible) | Additional strategies can be added |
+
+#### Dynamic Thresholding
+When `dynamic_threshold: true` in config:
+- Threshold adjusts based on current conversation context length
+- Shorter context → lower threshold (more permissive retrieval)
+- Longer context → higher threshold (more selective)
+- Algorithm: Simple linear adjustment based on context message count
+- Can be disabled to use static `context_similarity_threshold`
 
 ### Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| similarity_threshold | 0.65 | Minimum similarity score (0-1) |
+| context_similarity_threshold | 0.65 | Minimum similarity score (static, used when dynamic disabled) |
+| dynamic_threshold | true | Enable dynamic threshold adjustment |
+| retrieval_strategy | default | Which retrieval strategy to use |
 | context_results | 5 | Maximum context exchanges returned |
 
 ### Context Retrieval
@@ -70,9 +107,10 @@ All conversation exchanges are automatically stored (except in dummy mode) for:
 During response generation:
 
 1. **Build query** from recent exchanges (excluding commands)
-2. **Search regular context** using `get_episodic_context()`
-3. **Filter and rank** by similarity score
-4. **Inject into prompt** based on context mode
+2. **Select strategy** based on configuration
+3. **Search regular context** using configured retrieval strategy
+4. **Filter and rank** by similarity score
+5. **Inject into prompt** based on context mode
 
 ## Document Indexing
 
@@ -220,13 +258,13 @@ For automation without interactive session:
 
 ```bash
 # Add document to vector store
-ocat --add-to-vector-store /path/to/document.txt
+cato --add-to-vector-store /path/to/document.txt
 
 # Query vector store
-ocat --query-vector-store "search query"
+cato --query-vector-store "search query"
 
 # Show statistics
-ocat --vector-store-stats
+cato --vector-store-stats
 ```
 
 ## Configuration
@@ -283,7 +321,7 @@ vector_store:
 
 Or via CLI:
 ```bash
-ocat --no-vector-store
+cato --no-vector-store
 ```
 
 When disabled:

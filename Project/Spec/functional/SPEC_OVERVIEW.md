@@ -1,12 +1,12 @@
-# Ocat Functional Specification - Overview
+# Cato Functional Specification - Overview
 
 ## Application Summary
 
-**Ocat** (Otherworldly Chats at the Terminal) is an interactive command-line LLM chat application with integrated productivity features, file management capabilities, and conversational memory through vector storage.
+**Cato** (Chat at the Terminal Orchestrator) is an interactive command-line LLM chat application with integrated productivity features, file management capabilities, and conversational memory through vector storage.
 
 ## Purpose
 
-Ocat provides a unified terminal interface for:
+Cato provides a unified terminal interface for:
 - Conversational AI interactions with multiple LLM providers
 - Personal productivity management (tasks, lists, time tracking, memories)
 - File operations and code management
@@ -69,28 +69,37 @@ This specification is divided into the following functional areas:
 
 ## User Interface
 
-### Welcome Panel
+### Welcome Message
+The welcome message displays key configuration that affects behaviour (excluding style):
+
 ```
-┌─ 🐱 Ocat ─────────────────────────────────────────────────┐
-│ Welcome to Cato - Chat at (the) Terminal Orchestrator     │
-│                                                           │
-│ Type your messages to chat with the LLM.                  │
-│ Type /help to see available commands.                     │
-│ Type /exit to quit the application.                       │
-│                                                           │
-│ Profile: Default                                          │
-│ Model: gpt-4o-mini                                        │
-│ ParamX: value                                             │
-│ ParamY: value                                             │
-└───────────────────────────────────────────────────────────┘
+─ 🐱 Cato ─────────────────────────────────────────────────
+Welcome to Cato - Chat at the Terminal Orchestrator
+
+Type your messages to chat with the LLM.
+Type /help to see available commands.
+Type /exit to quit the application.
+
+Config: Margaret (~/.cato/margaret.yaml)
+Model: gpt-4o-mini
+Vector Store: enabled (./vector_stores/default/)
+TTS: enabled
+───────────────────────────────────────────────────────────
 ```
-Where ParamX are config params that will effect the chat behaviour (excluding style config)
+
+**Required information:**
+- Configuration name (`profile_name`) and file path
+- Current model
+- Behavioural settings that differ from defaults (not style)
+
+**Purpose:** User can scroll to top of session to see exactly what configuration is active without checking files
 
 ### Prompt
 Default: `🐱 > ` (configurable via `display.prompt_symbol`)
 
 ### Response Display
-- Assistant responses rendered in a bordered panel
+- Assistant responses rendered with clear visual separation (NOT bordered panels)
+- Response text must be directly copy-pasteable without formatting artifacts
 - Markdown formatting with syntax highlighting for code
 - Configurable line width and styling
 - Visual delimiter between exchanges

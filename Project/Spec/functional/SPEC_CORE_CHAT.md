@@ -62,8 +62,14 @@ Regular message processing:
 
 ### System Prompts
 
-#### Base Prompt
-A default base prompt is loaded from the package's `prompts/base_prompt.md` file. This establishes core assistant behavior.
+#### Master/Base Prompt
+A master base prompt is loaded from the package's `prompts/base_prompt.md` file. This establishes core assistant behavior.
+
+**The master prompt is sacrosanct:**
+- Contains only the minimum necessary for the model to do its job
+- Does not include UI mechanics or Cato-specific knowledge
+- Changes to the master prompt should be treated as code changes
+- Should only be updated when absolutely necessary
 
 The base prompt is automatically enhanced with:
 - Current session timestamp (local and UTC)
@@ -77,7 +83,13 @@ llm:
     - ~/prompts/domain_knowledge.md
 ```
 
-All prompts are concatenated with the base prompt (unless `override_base_prompt: true`).
+User prompts are **appended** to the master prompt (unless `override_base_prompt: true`).
+
+#### Final System Prompt Structure
+The generated system prompt has clear sections:
+1. Master prompt (core behaviour)
+2. User system prompts (appended)
+3. Session metadata (timestamp, etc.)
 
 ### Context Retrieval
 
@@ -143,18 +155,34 @@ When `--debug` flag is set:
 
 ## Response Display
 
-### Panel Formatting
+### Display Philosophy
+**Response text must be directly copy-pasteable.**
 
+- Do NOT use boxed/bordered panels that interfere with text selection
+- Clear visual separation between exchanges without disrupting copy/paste
+- Use delimiter lines and labels for clarity, not enclosing boxes
+
+### Response Formatting
+
+```
 ─ 🤖 Assistant ──────────────────────────────────────────────
-                                                             
-Response content with **markdown** rendering               
-                                                             
-```python                                                  
-def example():                                             
-    return "syntax highlighted"                            
-```                                                        
-                                                             
-─────────────────────────────────────────────────────────────
+
+Response content with **markdown** rendering
+
+```python
+def example():
+    return "syntax highlighted"
+```
+
+──────────────────────────────────────────────────────────────
+```
+
+**Key points:**
+- Header line with label and delimiter
+- Response text is NOT enclosed in a box
+- Markdown rendering applied to text
+- Code blocks with syntax highlighting
+- Footer delimiter to separate from next exchange
 
 ### Display Configuration
 
@@ -162,7 +190,7 @@ def example():
 |---------|---------|-------------|
 | user_label | "User" | Label for user messages |
 | assistant_label | "Assistant" | Label for assistant messages |
-| line_width | 80 | Panel and delimiter width |
+| line_width | 80 | Terminal width for formatting |
 | exchange_delimiter | "─" | Character for visual separation |
 | exchange_delimiter_length | 60 | Length of delimiter line |
 

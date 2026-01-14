@@ -2,7 +2,7 @@
 
 ## Overview
 
-Ocat uses a slash command system for explicit actions. Commands start with `/` and are parsed before any other input processing.
+Cato uses a slash command system for explicit actions. Commands start with `/` and are parsed before any other input processing.
 
 ## Command Framework
 
@@ -41,7 +41,25 @@ Display help information.
 /help websearch          # Show web search help
 /help speak              # Show TTS help
 /help config             # Show configuration help
+/help model "question"   # Ask the model about Cato (see below)
 ```
+
+##### /help model
+Ask the model for help with Cato functionality.
+```
+/help model "how do I add a new command?"
+/help model "what configuration options affect the vector store?"
+```
+
+**Behavior:**
+1. Loads all user help files into context
+2. Creates a one-off message to the model with:
+   - Help file contents
+   - Instruction to derive response from help documentation
+   - The user's question
+3. Model responds based solely on help documentation
+4. This exchange is NOT added to the conversation history
+5. Does not affect the main conversation context
 
 #### /exit, /quit, /q
 Exit the application.
@@ -116,13 +134,18 @@ Change logging verbosity.
 ### Context Commands
 
 #### /showcontext
-Control context display mode.
+Toggle context display mode for all future exchanges.
 ```
-/showcontext        # Show current mode
-/showcontext on     # Show full context with excerpts
+/showcontext        # Toggle on/off (shows new state)
+/showcontext on     # Enable context display with excerpts
 /showcontext off    # Disable context display
-/showcontext summary # Show context counts only
 ```
+
+**Behavior:**
+- Acts as a **toggle** - calling `/showcontext` without arguments flips the current state
+- When **on**: Context excerpts displayed before each response
+- When **off**: No context information displayed (default)
+- State persists for the duration of the session
 
 #### /continue, /cont
 Continue an existing conversation thread.

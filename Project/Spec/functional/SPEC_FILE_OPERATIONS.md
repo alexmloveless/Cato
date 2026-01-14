@@ -28,7 +28,7 @@ locations:
 Use `alias:filename` to reference files via aliases:
 ```
 /file read docs:notes.txt       # Reads ~/Documents/notes.txt
-/attach config:ocat.yaml        # Attaches ~/.config/ocat.yaml
+/attach config:cato.yaml        # Attaches ~/.config/cato.yaml
 /vdoc projects:readme.md        # Adds ~/Code/projects/readme.md to vector store
 ```
 
