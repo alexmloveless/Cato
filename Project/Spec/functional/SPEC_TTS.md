@@ -101,7 +101,7 @@ tts:
 ```
 
 Audio files are saved to configured directory:
-- Filename: `ocat_tts_{timestamp}.mp3`
+- Filename: `cato_tts_{timestamp}.mp3`
 - Files persist after playback (not auto-deleted)
 
 ### Playback Flow

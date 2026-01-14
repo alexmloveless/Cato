@@ -29,7 +29,7 @@ The provider is automatically determined from the model name:
 |-----------|---------|-------|-------------|
 | model | gpt-4o-mini | Provider-specific | LLM model identifier |
 | temperature | 1.0 | 0.0-2.0 | Response randomness |
-| max_tokens | 4000 | >0 | Maximum response tokens |
+| max_tokens | 10000 | >0 | Maximum response tokens |
 
 ## Conversation Management
 
@@ -46,23 +46,18 @@ The provider is automatically determined from the model name:
 ```
 User Input
     ↓
-Check for pending memory prompt → Handle yes/no response
-    ↓
 Check for slash command (/) → Route to CommandParser
     ↓
 Check for productivity marker (%) → Route to ProductivityAgent
     ↓
-Check for file marker (@) → Route to FileAgent
-    ↓
 Regular message processing:
     1. Add user message to history
     2. Retrieve relevant context from vector store
-    3. Retrieve relevant memories from vector store
-    4. Prepare messages for LLM API
-    5. Generate response with progress indicator
-    6. Add assistant response to history
-    7. Store exchange in vector store
-    8. Display formatted response
+    3. Prepare messages for LLM API
+    4. Generate response with progress indicator
+    5. Add assistant response to history
+    6. Store exchange in vector store
+    7. Display formatted response
 ```
 
 ### System Prompts
@@ -72,8 +67,6 @@ A default base prompt is loaded from the package's `prompts/base_prompt.md` file
 
 The base prompt is automatically enhanced with:
 - Current session timestamp (local and UTC)
-- Productivity capabilities summary (when enabled)
-- File tools capabilities summary (when enabled)
 
 #### User System Prompts
 Additional system prompts can be loaded from files specified in configuration:
@@ -91,18 +84,14 @@ All prompts are concatenated with the base prompt (unless `override_base_prompt:
 Before generating a response, the system:
 
 1. **Builds search query** from recent non-command exchanges
-   - Excludes messages starting with `/`, `%`, `@`
-   - Uses configurable `search_context_window` (default: 3 recent exchanges)
+   - Excludes messages starting with `/`
+   - Uses configurable `search_context_window` (default: -1 = all exchanges)
 
 2. **Retrieves similar exchanges** from vector store
    - Uses similarity threshold from config
    - Returns up to `context_results` exchanges
 
-3. **Retrieves relevant memories** from vector store
-   - Separate similarity search for memory-tagged content
-   - Returns up to `memory_results` memories
-
-4. **Injects context** into API request
+3. **Injects context** into API request
    - Memories always included if found
    - Regular context included based on `context_mode`:
      - `off`: No context injection (default)
@@ -121,9 +110,6 @@ Controlled via `/showcontext` command:
 
 When context is used, indicators appear before the response:
 ```
-🧠 Using 2 relevant memory(ies):
-   1. User prefers dark mode...
-   2. User's name is Alex...
 💭 Using context from 3 previous exchange(s):
    1. User: How do I configure... 
       Assistant: You can modify the...
@@ -158,19 +144,17 @@ When `--debug` flag is set:
 ## Response Display
 
 ### Panel Formatting
-```
-┌─ 🤖 Assistant ──────────────────────────────────────────────┐
-│                                                             │
-│  Response content with **markdown** rendering               │
-│                                                             │
-│  ```python                                                  │
-│  def example():                                             │
-│      return "syntax highlighted"                            │
-│  ```                                                        │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-────────────────────────────────────────────────────────────────
-```
+
+─ 🤖 Assistant ──────────────────────────────────────────────
+                                                             
+Response content with **markdown** rendering               
+                                                             
+```python                                                  
+def example():                                             
+    return "syntax highlighted"                            
+```                                                        
+                                                             
+─────────────────────────────────────────────────────────────
 
 ### Display Configuration
 
@@ -179,10 +163,8 @@ When `--debug` flag is set:
 | user_label | "User" | Label for user messages |
 | assistant_label | "Assistant" | Label for assistant messages |
 | line_width | 80 | Panel and delimiter width |
-| response_on_new_line | true | Extra spacing before response |
 | exchange_delimiter | "─" | Character for visual separation |
 | exchange_delimiter_length | 60 | Length of delimiter line |
-| high_contrast | true | Use brighter colors |
 
 ### Code Highlighting
 - Automatic language detection from markdown fence
@@ -231,21 +213,6 @@ When `--debug` flag is set:
 - Session ID: UUID assigned at session start
 - Thread Session ID: `{thread_id}_{session_id}` composite
 - Continuation Sequence: Increments each time thread is continued
-
-## Casual Mode
-
-### Activation
-- `--casual` CLI flag at startup
-- `/casual on` command during session
-
-### Behavior
-Loads additional system prompt for informal conversation style:
-- More relaxed, friendly responses
-- Less formal structure
-- Emoji usage encouraged
-
-### Deactivation
-`/casual off` removes the casual prompt from the session.
 
 ## Keyboard Shortcuts
 

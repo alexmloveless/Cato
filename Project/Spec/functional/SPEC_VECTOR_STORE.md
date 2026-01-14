@@ -16,6 +16,8 @@ The vector store provides persistent conversation memory using vector embeddings
 - Dimensions: 1536 (configurable)
 - Requires OPENAI_API_KEY environment variable
 
+The model should be configurable.
+
 ## Exchange Storage
 
 ### Exchange Data Model
@@ -46,6 +48,7 @@ All conversation exchanges are automatically stored (except in dummy mode) for:
 - Future context retrieval
 - Thread continuation
 - Conversation history
+- Productivity exchanges and outputs are **not** stored
 
 ## Similarity Search
 
@@ -61,8 +64,6 @@ All conversation exchanges are automatically stored (except in dummy mode) for:
 |---------|---------|-------------|
 | similarity_threshold | 0.65 | Minimum similarity score (0-1) |
 | context_results | 5 | Maximum context exchanges returned |
-| memory_threshold | 0.7 | Threshold for memory retrieval |
-| memory_results | 3 | Maximum memories returned |
 
 ### Context Retrieval
 
@@ -70,9 +71,8 @@ During response generation:
 
 1. **Build query** from recent exchanges (excluding commands)
 2. **Search regular context** using `get_episodic_context()`
-3. **Search memories** using `find_relevant_memories()`
-4. **Filter and rank** by similarity score
-5. **Inject into prompt** based on context mode
+3. **Filter and rank** by similarity score
+4. **Inject into prompt** based on context mode
 
 ## Document Indexing
 
@@ -131,47 +131,6 @@ Add a document file with chunking.
 - `chunk_index: n`
 - `total_chunks: N`
 
-## Memory System
-
-### Tagged Memories
-Memories are special exchanges with type tags:
-
-```
-<fact>User's brother is named Bob</fact>
-<preference>User prefers dark mode</preference>
-<critical>Important deadline: December 31</critical>
-```
-
-### Memory Types
-| Type | Description |
-|------|-------------|
-| fact | General information |
-| preference | User preferences |
-| critical | High-priority information |
-| nudge | Gentle reminders |
-| like | Positive preferences |
-| opinion | Personal views |
-| dislike | Negative preferences |
-
-### /remember Command
-Store typed memory.
-
-```
-/remember fact My brother is named Bob
-/remember preference I prefer dark mode
-/remember critical The API key expires Dec 31
-```
-
-**Storage:**
-- User prompt: Tagged text `<type>content</type>`
-- Assistant response: Empty string
-- Thread: `remember` (dedicated thread)
-
-### Memory Retrieval
-Memories are searched separately from regular context:
-- Higher similarity threshold (0.7 default)
-- Fewer results (3 default)
-- Always included in prompt when found
 
 ## Vector Store Commands
 
@@ -230,7 +189,6 @@ Display vector store statistics.
 │ Metric           │ Value                                     │
 ├──────────────────┼───────────────────────────────────────────┤
 │ Total Exchanges  │ 1,234                                     │
-│ Collection Count │ 1                                         │
 │ Store Path       │ ./vector_stores/default/                  │
 │ Vector Dimension │ 1536                                      │
 │ Embedding Model  │ text-embedding-3-small                    │

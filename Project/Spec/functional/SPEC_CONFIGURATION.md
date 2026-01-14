@@ -23,79 +23,13 @@ YAML configuration with nested sections:
 profile_name: "My Profile"
 debug: false
 
-llm:
-  model: gpt-4o-mini
-  temperature: 1.0
-  max_tokens: 4000
-  system_prompt_files: []
-  base_prompt_file: ""
-  override_base_prompt: false
+section_1:
+  value_1: whatever
+  value_2: 1.0
 
-vector_store:
-  enabled: true
-  path: ./vector_stores/default/
-  similarity_threshold: 0.65
-  chat_window: 3
-  context_results: 5
-  search_context_window: 3
-  memory_threshold: 0.7
-  memory_results: 3
-
-embedding:
-  model: text-embedding-3-small
-  dimensions: 1536
-
-chunking:
-  strategy: semantic
-  chunk_size: 1000
-  chunk_overlap: 100
-  max_chunk_size: 1500
-  preserve_sentence_boundaries: true
-
-display:
-  user_label: User
-  assistant_label: Assistant
-  no_rich: false
-  no_color: false
-  line_width: 80
-  response_on_new_line: true
-  exchange_delimiter: "─"
-  exchange_delimiter_length: 60
-  high_contrast: true
-  prompt_symbol: "🐱 > "
-
-productivity:
-  proactive_memory_suggestions: false
-  routing_marker: "%"
-
-file_tools:
-  routing_marker: "@"
-
-logging:
-  level: WARN
-  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-  show_context: false
-
-tts:
-  enabled: true
-  voice: nova
-  model: tts-1
-  audio_dir: /tmp
-
-web_search:
-  enabled: true
-  default_engine: duckduckgo
-  content_threshold: 500
-  max_results: 3
-  timeout: 10
-  engines:
-    google: "https://www.google.com/search?q={query}"
-    bing: "https://www.bing.com/search?q={query}"
-    duckduckgo: "https://duckduckgo.com/html/?q={query}"
-
-locations:
-  docs: ~/Documents
-  projects: ~/Code/projects
+section_2:
+  value_3: whatever
+  value_4: 1.0
 ```
 
 ## Configuration Sections
@@ -115,8 +49,8 @@ locations:
 | temperature | float | 1.0 | 0.0-2.0 | Response randomness |
 | max_tokens | int | 4000 | >0 | Maximum response tokens |
 | system_prompt_files | list | [] | - | Additional prompt files |
-| base_prompt_file | string | (package default) | - | Base prompt file path |
-| override_base_prompt | bool | false | - | Skip base prompt (warns user) |
+| base_prompt_file | string | (package default) | - | Alternative prompt file path |
+| override_base_prompt | bool | false | - | Only has an effect if base_prompt_file is populated. If true will override the base in its entirety. If false, it will append. |
 
 ### Vector Store Configuration (`vector_store`)
 
@@ -124,12 +58,10 @@ locations:
 |---------|------|---------|-------|-------------|
 | enabled | bool | true | - | Enable vector store |
 | path | string | ./vector_stores/default/ | - | Storage directory |
-| similarity_threshold | float | 0.65 | 0.0-1.0 | Minimum similarity for context |
-| chat_window | int | 3 | >0 | Recent exchanges for context queries |
+| chat_window | int | -1 | >0 | The number of recent exchanges to maintain in the current chat. This is to limit the size of of the context. A value of -1 means keep all exchanges, |
 | context_results | int | 5 | >0 | Max context exchanges returned |
-| search_context_window | int | 3 | >0 | Recent exchanges in search query |
-| memory_threshold | float | 0.7 | 0.0-1.0 | Similarity for memory retrieval |
-| memory_results | int | 3 | >0 | Max memories returned |
+| context_similarity_threshold | float | 0.65 | 0.0-1.0 | Minimum similarity for context |
+| search_context_window | int | 3 | >0 | The number of recent exchanges to use in the vector for the similarity search |
 
 ### Embedding Configuration (`embedding`)
 
@@ -157,24 +89,10 @@ locations:
 | no_rich | bool | false | Disable rich text formatting |
 | no_color | bool | false | Disable ANSI colors |
 | line_width | int | 80 | Terminal width (chars) |
-| response_on_new_line | bool | true | Extra spacing before response |
 | exchange_delimiter | string | ─ | Character for separation |
 | exchange_delimiter_length | int | 60 | Delimiter line length |
-| high_contrast | bool | true | Brighter colors |
 | prompt_symbol | string | 🐱 >  | Input prompt |
 
-### Productivity Configuration (`productivity`)
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| proactive_memory_suggestions | bool | false | Suggest storing personal facts |
-| routing_marker | string | % | Prefix for productivity messages |
-
-### File Tools Configuration (`file_tools`)
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| routing_marker | string | @ | Prefix for file operation messages |
 
 ### Logging Configuration (`logging`)
 
@@ -220,28 +138,7 @@ locations:
 | Argument | Description |
 |----------|-------------|
 | `--config <path>` | Path to configuration file |
-| `--profile <name>` | Configuration profile name |
 
-### Model Overrides
-| Argument | Description |
-|----------|-------------|
-| `--model <name>` | LLM model name |
-| `--temperature <float>` | Temperature (0.0-2.0) |
-| `--max-tokens <int>` | Maximum tokens |
-
-### Vector Store
-| Argument | Description |
-|----------|-------------|
-| `--vector-store-path <path>` | Vector store directory |
-| `--no-vector-store` | Disable vector store |
-| `--similarity-threshold <float>` | Similarity threshold |
-
-### Display
-| Argument | Description |
-|----------|-------------|
-| `--no-rich` | Disable rich formatting |
-| `--no-color` | Disable colors |
-| `--line-width <int>` | Terminal width |
 
 ### Logging
 | Argument | Description |
@@ -253,7 +150,6 @@ locations:
 |----------|-------------|
 | `--debug` | Enable debug mode |
 | `--dummy-mode` | Use mock LLM responses |
-| `--casual` | Start in casual mode |
 
 ### Headless Operations
 | Argument | Description |
@@ -278,15 +174,10 @@ locations:
 | GOOGLE_API_KEY | Google API key |
 
 ### Configuration Overrides
-Environment variables can override config settings using the pattern:
-`OCAT_{SECTION}_{SETTING}` (uppercase)
 
-Example:
-```bash
-export OCAT_LLM_MODEL=gpt-4o
-export OCAT_LOGGING_LEVEL=DEBUG
-export OCAT_VECTOR_STORE_ENABLED=false
-```
+| Variable | Description |
+|----------|-------------|
+| CATO_CONFIG_FILE |  The path to the config file to use if one wasn't passed in the cmd args|
 
 ## Validation
 
@@ -302,27 +193,14 @@ export OCAT_VECTOR_STORE_ENABLED=false
 6. Apply CLI argument overrides
 7. Report validation errors
 
+If there is an appropriate existing parser or validator in pydantic (e.g. for file location validation) the you should use that in preference to creating a native one.
+
 ### Error Handling
 - Invalid YAML: Show parse error, exit
 - Missing required key: Use default
-- Invalid value: Show validation error, exit
+- Invalid value: Warn the user and fall back to default
 - Invalid location alias: Log warning, continue
 
-## Profile System
-
-### Purpose
-Profiles allow switching between configurations for different use cases.
-
-### Usage
-```bash
-ocat --profile work
-ocat --profile personal
-```
-
-### Profile Identification
-The `profile_name` setting is displayed in:
-- Welcome panel
-- Config display (`/config`)
 
 ## Example Configurations
 

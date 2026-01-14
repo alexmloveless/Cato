@@ -6,16 +6,6 @@ File operations provide comprehensive file system interaction including reading,
 
 ## Routing
 
-### Marker-Based Routing
-Messages prefixed with `@` (configurable via `file_tools.routing_marker`) are routed to the file tools agent for natural language file operations.
-
-Examples:
-```
-@ read the config file
-@ what files are in my current directory?
-@ summarize the contents of notes.txt
-```
-
 ### Slash Commands
 Direct file operations use slash commands without the routing marker.
 
@@ -117,13 +107,14 @@ Add content to an existing file.
 - Adds newline before content if file doesn't end with one
 - Preserves existing content
 
-### List Subcommand
-List directory contents.
+### List Subcommand (list/ls)
+List directory contents. 
 
 ```
 /file list                    # Current directory
+/file ls                      # Current directory
 /file list /path/to/dir       # Specific directory
-/file list docs:              # Via alias
+/file ls docs:                # Via alias
 ```
 
 **Display:**
@@ -135,38 +126,6 @@ List directory contents.
 │ 📄     │ notes.txt         │ 2.5 KB   │ 2024-01-14 15:45   │
 │ 📄     │ config.yaml       │ 1.2 KB   │ 2024-01-10 09:00   │
 └────────┴───────────────────┴──────────┴─────────────────────┘
-```
-
-### Search Subcommand
-Search for files or content.
-
-```
-/file search <pattern> [path]
-/file search "*.py"                    # Find Python files
-/file search "def main" src/           # Search content in src/
-/file search "TODO" projects:          # Search in aliased path
-```
-
-### Tree Subcommand
-Display directory tree structure.
-
-```
-/file tree [path] [depth]
-/file tree                     # Current directory, default depth
-/file tree . 3                 # Current directory, 3 levels deep
-/file tree projects: 2         # Aliased path, 2 levels
-```
-
-**Display:**
-```
-📁 project/
-├── 📁 src/
-│   ├── 📄 main.py
-│   ├── 📄 utils.py
-│   └── 📁 tests/
-│       └── 📄 test_main.py
-├── 📄 README.md
-└── 📄 setup.py
 ```
 
 ## Directory Navigation
@@ -374,16 +333,6 @@ Copy last assistant response to system clipboard.
 - Works on macOS, Linux, Windows
 
 ## File Tools Agent
-
-### Natural Language Operations
-The file tools agent interprets natural language requests:
-
-```
-@ read the readme file
-@ what's in the src directory?
-@ show me the config file
-@ list all python files in this project
-```
 
 ### Response Format
 File agent responses are displayed but not added to main conversation history, keeping context clean.

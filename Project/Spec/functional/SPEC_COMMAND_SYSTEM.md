@@ -90,7 +90,7 @@ Remove recent exchanges from history.
 ```
 
 #### /model
-Change or display the current LLM model.
+Change or display the current LLM model. This overrides the setting in the user config file.
 ```
 /model                  # Show current model
 /model gpt-4o           # Change to gpt-4o
@@ -140,19 +140,6 @@ Toggle casual conversation mode.
 
 ### File Commands
 
-See SPEC_FILE_OPERATIONS.md for detailed file command documentation.
-
-#### /file
-Multi-purpose file operations command.
-```
-/file read <path>              # Read and display file
-/file write <path> <content>   # Write content to file
-/file append <path> <content>  # Append to file
-/file list [path]              # List directory contents
-/file search <pattern> [path]  # Search files
-/file tree [path] [depth]      # Show directory tree
-```
-
 #### /attach
 Attach files as conversation context.
 ```
@@ -186,13 +173,6 @@ Display file contents (alias for `/file read`).
 ```
 /cat filename.txt
 /cat alias:filename.txt
-```
-
-#### /mkdir
-Create a new directory.
-```
-/mkdir new_directory
-/mkdir path/to/new/directory
 ```
 
 #### /locations
@@ -302,27 +282,6 @@ Display vector store statistics.
 
 ### Memory Commands
 
-#### /remember, /rem, /r
-Store information in vector store for future retrieval.
-```
-/remember fact I have a brother called Bob
-/remember preference I prefer dark mode
-/remember critical This is very important
-/rem like I enjoy hiking
-/r dislike I don't like spicy food
-```
-
-**Valid Types:**
-| Type | Description |
-|------|-------------|
-| fact | General information |
-| preference | User preferences |
-| critical | High-priority information |
-| nudge | Gentle reminders |
-| like | Positive preferences |
-| opinion | Personal views |
-| dislike | Negative preferences |
-
 ### Productivity Commands
 
 See SPEC_PRODUCTIVITY.md for detailed productivity documentation.
@@ -349,19 +308,6 @@ Show lists and list items.
 ```
 /list                   # Show all lists with counts
 /list shopping          # Show items in shopping list
-```
-
-#### /timelog, /tl, /time
-Show and export timelog entries.
-```
-/timelog                            # Show all entries
-/tl -p project_name                 # Filter by project
-/tl --start=2024-01-01              # Filter by start date
-/tl --end=2024-12-31                # Filter by end date
-/tl -g project                      # Group by project
-/tl -g week                         # Group by week
-/tl -o csv -f output.csv            # Export to CSV
-/tl --output=json --file=data.json  # Export to JSON
 ```
 
 ### Web Commands

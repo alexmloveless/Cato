@@ -72,16 +72,19 @@ This specification is divided into the following functional areas:
 ### Welcome Panel
 ```
 ┌─ 🐱 Ocat ─────────────────────────────────────────────────┐
-│ Welcome to Ocat - Otherworldly Chats at (the) Terminal    │
+│ Welcome to Cato - Chat at (the) Terminal Orchestrator     │
 │                                                           │
 │ Type your messages to chat with the LLM.                  │
 │ Type /help to see available commands.                     │
 │ Type /exit to quit the application.                       │
 │                                                           │
-│ Model: gpt-4o-mini                                        │
 │ Profile: Default                                          │
+│ Model: gpt-4o-mini                                        │
+│ ParamX: value                                             │
+│ ParamY: value                                             │
 └───────────────────────────────────────────────────────────┘
 ```
+Where ParamX are config params that will effect the chat behaviour (excluding style config)
 
 ### Prompt
 Default: `🐱 > ` (configurable via `display.prompt_symbol`)
