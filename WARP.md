@@ -8,6 +8,23 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 **Status**: Pre-implementation - specification documents exist in `Project/Spec/`
 
+### Purpose
+Cato exists to provide maximum control over LLM interactions, tailored to specific user needs and idiosyncrasies. It is a chat client first, productivity client second.
+
+### Intent
+Cato provides a unified terminal interface for:
+- Conversational AI interactions with multiple LLM providers
+- Personal productivity management (tasks, lists, time tracking, memories)
+- File operations and code management
+- Persistent conversational memory with context retrieval
+- Text-to-speech synthesis and web search integration
+
+### Target User
+- Single user on a single machine
+- Users who are highly changeable, like to tinker and experiment
+- Users who want flexible, modular architecture they can customise
+- Multiple instances may run with different configurations simultaneously
+
 ## Before Starting Development
 
 Read the specification documents in order:
