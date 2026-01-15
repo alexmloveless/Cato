@@ -2,12 +2,13 @@
 
 import argparse
 import asyncio
+import logging
 import sys
 from pathlib import Path
 
 from cato.bootstrap import create_application
 from cato.core.exceptions import CatoError
-from cato.core.logging import setup_logging, get_logger
+from cato.core.logging import get_logger
 
 
 def parse_args() -> argparse.Namespace:
@@ -55,8 +56,11 @@ def main() -> None:
     """
     args = parse_args()
 
-    # Setup basic logging first (will be reconfigured from config later)
-    setup_logging()
+    # Setup basic logging first (will be reconfigured from config in bootstrap)
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.INFO,
+        format="%(levelname)s: %(message)s"
+    )
     logger = get_logger(__name__)
 
     try:
@@ -67,7 +71,7 @@ def main() -> None:
         # Override debug mode if specified on CLI
         if args.debug:
             app.config.debug = True
-            setup_logging()  # Reconfigure with debug
+            logging.getLogger("cato").setLevel(logging.DEBUG)
 
         # Run the application
         asyncio.run(app.run())

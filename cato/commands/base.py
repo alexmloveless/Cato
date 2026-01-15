@@ -57,6 +57,8 @@ class CommandContext:
         Current session ID.
     thread_id : str | None
         Current thread ID if any.
+    registry : CommandRegistry | None
+        Command registry for command lookup.
     """
     
     config: "CatoConfig"
@@ -68,6 +70,7 @@ class CommandContext:
     cwd: Path = field(default_factory=lambda: Path.cwd())
     session_id: str = ""
     thread_id: str | None = None
+    registry: Any | None = None  # Will be CommandRegistry
 
 
 class Command(Protocol):

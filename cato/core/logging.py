@@ -52,3 +52,20 @@ def setup_logging(config: "LoggingConfig") -> None:
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(logging.Formatter(config.format))
         root_logger.addHandler(file_handler)
+
+
+def get_logger(name: str) -> logging.Logger:
+    """
+    Get a logger instance for the given module.
+    
+    Parameters
+    ----------
+    name : str
+        Logger name, typically __name__ of the calling module.
+    
+    Returns
+    -------
+    logging.Logger
+        Logger instance under the 'cato' hierarchy.
+    """
+    return logging.getLogger(f"cato.{name}" if not name.startswith("cato") else name)

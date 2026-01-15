@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 from cato.commands.base import CommandContext
 from cato.commands.executor import CommandExecutor
 from cato.commands.parser import parse_command_input
+from cato.commands.registry import CommandRegistry
 from cato.core.config import CatoConfig
 from cato.core.exceptions import CatoError, CommandError
 from cato.core.logging import get_logger
@@ -45,8 +46,8 @@ class Application:
         Display handler for output.
     input_handler : InputHandler
         Input handler for user input.
-    executor : CommandExecutor
-        Command executor for slash commands.
+    registry : CommandRegistry
+        Command registry for slash commands.
 
     Attributes
     ----------
@@ -73,7 +74,7 @@ class Application:
         storage: Storage,
         display: RichDisplay,
         input_handler: InputHandler,
-        executor: CommandExecutor,
+        registry: CommandRegistry,
     ) -> None:
         """
         Initialize application with injected dependencies.
@@ -90,16 +91,22 @@ class Application:
             Display handler for output.
         input_handler : InputHandler
             Input handler for user input.
-        executor : CommandExecutor
-            Command executor for slash commands.
+        registry : CommandRegistry
+            Command registry for slash commands.
         """
         self.config = config
         self.chat_service = chat_service
         self.storage = storage
         self.display = display
         self.input_handler = input_handler
-        self.executor = executor
+        self.registry = registry
         self.running = False
+        
+        # Create executor with context factory
+        self.executor = CommandExecutor(
+            registry=registry,
+            context_factory=self._create_command_context,
+        )
 
         logger.info("Application initialized")
 
@@ -143,7 +150,7 @@ class Application:
         while self.running:
             try:
                 # Get user input
-                user_input = await asyncio.to_thread(self.input_handler.get_input)
+                user_input = await self.input_handler.get_input()
                 
                 # Handle empty input
                 if not user_input or not user_input.strip():
@@ -167,6 +174,25 @@ class Application:
                 logger.exception("Error in REPL loop")
                 self.display.show_error(f"Error: {e}")
 
+    def _create_command_context(self) -> CommandContext:
+        """
+        Create command context with current application state.
+        
+        Returns
+        -------
+        CommandContext
+            Command execution context.
+        """
+        return CommandContext(
+            config=self.config,
+            conversation=None,  # TODO: Implement conversation tracking
+            llm=self.chat_service.provider if hasattr(self.chat_service, 'provider') else None,
+            vector_store=None,  # TODO: Implement vector store
+            storage=self.storage,
+            display=self.display,
+            registry=self.registry,
+        )
+    
     async def _handle_command(self, user_input: str) -> None:
         """
         Handle slash command execution.
@@ -177,25 +203,10 @@ class Application:
             Raw user input starting with command prefix.
         """
         try:
-            # Parse command
-            command_name, args = parse_command_input(
-                user_input,
-                prefix=self.config.commands.prefix
-            )
-            
-            logger.debug(f"Executing command: {command_name} with args: {args}")
+            logger.debug(f"Executing command: {user_input}")
 
-            # Create command context
-            context = CommandContext(
-                app=self,
-                config=self.config,
-                chat_service=self.chat_service,
-                storage=self.storage,
-                display=self.display,
-            )
-
-            # Execute command
-            result = await self.executor.execute(command_name, args, context)
+            # Execute command (executor will parse and create context)
+            result = await self.executor.execute(user_input)
 
             # Display result
             if not result.success:
@@ -203,8 +214,8 @@ class Application:
             elif result.message:
                 self.display.show_info(result.message)
 
-            # Handle special exit command result
-            if command_name in ("exit", "quit"):
+            # Handle special exit command result (check result data)
+            if result and result.data and result.data.get("should_exit"):
                 self.running = False
 
         except CommandError as e:

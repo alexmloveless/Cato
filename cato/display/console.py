@@ -111,6 +111,10 @@ class RichDisplay:
         """Create spinner context manager."""
         return RichSpinnerContext(self._console, message, self._config.spinner_style)
     
+    def spinner(self, message: str) -> "RichSpinnerContext":
+        """Create spinner context manager (alias for show_spinner)."""
+        return self.show_spinner(message)
+    
     def clear(self) -> None:
         """Clear terminal."""
         self._console.clear()

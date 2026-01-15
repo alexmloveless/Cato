@@ -71,13 +71,13 @@ class CommandExecutor:
                 context={"available": available},
             )
         
-        # Create instance and execute
-        command = command_cls()
+        # Create context and execute command
         context = self._context_factory()
         
         try:
             logger.info(f"Executing command: /{command_name} with args: {args}")
-            result = await command.execute(args, context)
+            # Commands are async functions, call them directly
+            result = await command_cls(context, args)
             logger.debug(f"Command result: success={result.success}, message={result.message}")
             return result
         except CatoError:

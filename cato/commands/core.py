@@ -31,14 +31,18 @@ async def help_command(ctx: CommandContext, args: list[str]) -> CommandResult:
     CommandResult
         Help information to display.
     """
-    from cato.commands.registry import CommandRegistry
-
-    registry = CommandRegistry.get_instance()
+    registry = ctx.registry
+    
+    if not registry:
+        return CommandResult(
+            success=False,
+            message="Command registry not available"
+        )
 
     # Show help for specific command
     if args:
         command_name = args[0]
-        command_func = registry.get_command(command_name)
+        command_func = registry.get(command_name)
         
         if command_func is None:
             return CommandResult(
@@ -46,28 +50,30 @@ async def help_command(ctx: CommandContext, args: list[str]) -> CommandResult:
                 message=f"Unknown command: {command_name}"
             )
         
-        # Get command info
-        info = registry.get_command_info(command_name)
-        if info:
-            help_text = f"**{info.name}**"
-            if info.aliases:
-                help_text += f" (aliases: {', '.join(info.aliases)})"
-            help_text += f"\n\n{info.description or 'No description available.'}"
-            
-            return CommandResult(success=True, message=help_text)
+        # Show basic help for the command
+        help_text = f"Command: /{command_name}\n\n"
+        if hasattr(command_func, '__doc__') and command_func.__doc__:
+            help_text += command_func.__doc__.strip()
+        else:
+            help_text += "No documentation available."
+        
+        return CommandResult(success=True, message=help_text)
     
     # Show list of all commands
     all_commands = registry.list_commands()
     
     help_text = """# Available Commands
 
-## Core Commands
-- **/help** (h, ?) - Show this help message
-- **/exit** (quit, q) - Exit Cato
-- **/clear** (cls) - Clear conversation history
-- **/config** - Show current configuration
+## Registered Commands
+"""
+    for name, description, aliases in all_commands:
+        alias_str = f" ({', '.join(aliases)})" if aliases else ""
+        help_text += f"- **/{name}**{alias_str} - {description}\n"
+    
+    help_text += """
 
-## Usage
+## General Help
+
 Type a message to chat with the AI, or use `/command` to execute commands.
 Use `/help <command>` for detailed help on a specific command.
 """
@@ -96,12 +102,10 @@ async def exit_command(ctx: CommandContext, args: list[str]) -> CommandResult:
     CommandResult
         Exit confirmation message.
     """
-    # Signal the application to stop
-    ctx.app.stop()
-    
     return CommandResult(
         success=True,
-        message="Exiting Cato..."
+        message="Exiting Cato...",
+        data={"should_exit": True}
     )
 
 
@@ -127,14 +131,10 @@ async def clear_command(ctx: CommandContext, args: list[str]) -> CommandResult:
     CommandResult
         Confirmation message.
     """
-    # Clear the conversation history
-    ctx.chat_service.clear_conversation()
-    
-    message_count = ctx.chat_service.get_message_count()
-    
+    # TODO: Implement conversation clearing when conversation service is ready
     return CommandResult(
         success=True,
-        message=f"Conversation cleared. Started fresh with {message_count} messages."
+        message="Conversation clearing not yet implemented."
     )
 
 
