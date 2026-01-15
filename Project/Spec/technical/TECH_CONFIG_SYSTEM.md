@@ -132,9 +132,20 @@ class VectorStoreConfig(BaseModel):
     backend: Literal["chromadb"]
     path: Path
     collection_name: str
+    context_results: int = Field(ge=1)
+    search_context_window: int = Field(ge=1)
+    similarity_threshold: float = Field(ge=0.0, le=1.0)
+    dynamic_threshold: bool
+    retrieval_strategy: str
+    chat_window: int
+    embedding_provider: Literal["openai", "ollama"]
     embedding_model: str
+    embedding_dimensions: int = Field(ge=1)
+    chunking_strategy: Literal["truncate", "fixed_size", "semantic", "hybrid"]
     chunk_size: int = Field(ge=100, le=10000)
     chunk_overlap: int = Field(ge=0)
+    max_chunk_size: int = Field(ge=100, le=10000)
+    preserve_sentence_boundaries: bool
     
     @field_validator("chunk_overlap")
     @classmethod
@@ -398,10 +409,21 @@ vector_store:
   enabled: true
   backend: "chromadb"
   path: "~/.local/share/cato/vectordb"
-  collection_name: "cato_context"
+  collection_name: "cato_memory"
+  context_results: 5
+  search_context_window: 3
+  similarity_threshold: 0.65
+  dynamic_threshold: true
+  retrieval_strategy: "default"
+  chat_window: -1
+  embedding_provider: "openai"
   embedding_model: "text-embedding-3-small"
+  embedding_dimensions: 1536
+  chunking_strategy: "semantic"
   chunk_size: 1000
   chunk_overlap: 200
+  max_chunk_size: 1500
+  preserve_sentence_boundaries: true
 
 storage:
   database_path: "~/.local/share/cato/cato.db"

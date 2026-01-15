@@ -117,27 +117,30 @@ class LLMProvider(Protocol):
 ```python
 class VectorStore(Protocol):
     """Protocol for vector storage backends."""
-    
-    def store(
-        self, 
-        content: str, 
-        metadata: dict[str, Any],
-        embedding: list[float] | None = None
-    ) -> str:
-        """Store content and return its ID."""
+
+    async def add(self, documents: list[VectorDocument]) -> list[str]:
+        """Add documents to the store."""
         ...
-    
-    def query(
-        self, 
-        text: str, 
-        k: int = 5,
-        filters: dict[str, Any] | None = None
-    ) -> list[QueryResult]:
-        """Query for similar content."""
+
+    async def search(
+        self,
+        query: str,
+        n_results: int = 5,
+        filter: dict[str, Any] | None = None
+    ) -> list[SearchResult]:
+        """Search for similar documents."""
         ...
-    
-    def delete(self, ids: list[str]) -> int:
-        """Delete items by ID, return count deleted."""
+
+    async def get(self, ids: list[str]) -> list[VectorDocument]:
+        """Retrieve documents by ID."""
+        ...
+
+    async def delete(self, ids: list[str]) -> None:
+        """Delete documents by ID."""
+        ...
+
+    async def count(self) -> int:
+        """Return total document count."""
         ...
 ```
 
@@ -218,7 +221,8 @@ cato/                        # Repository root
 ├── README.md
 ├── CHANGELOG.md
 ├── LICENSE
-├── agent.txt                # AI codebase navigation
+├── AGENTS.md                # AI navigation (repo-level)
+├── WARP.md                  # AI rules for Warp
 ├── .gitignore
 │
 ├── cato/                    # Python package
@@ -286,7 +290,7 @@ cato/                        # Repository root
 │   │   ├── files.py         # /attach, /cd, /ls, /cat, /pwd
 │   │   ├── export.py        # /writemd, /writecode, /writejson, etc.
 │   │   ├── vector.py        # /vadd, /vdoc, /vquery, /vstats, /vdelete
-│   │   ├── productivity.py  # /st, /list, /timelog
+│   │   ├── productivity.py  # /st, /list
 │   │   ├── tts.py           # /speak, /speaklike
 │   │   └── web.py           # /web, /url
 │   │
@@ -377,17 +381,17 @@ Errors flow upward through layers:
 
 ```python
 # Storage layer
-def query(self, text: str) -> list[Result]:
+async def search(self, query: str) -> list[Result]:
     try:
-        return self._client.query(text)
+        return await self._client.search(query)
     except chromadb.errors.InvalidCollectionException as e:
         raise VectorStoreError(f"Collection not found: {e}") from e
 
 # Service layer
 async def get_context(self, query: str) -> list[str]:
     try:
-        results = self._vector_store.query(query)
-        return [r.content for r in results]
+        results = await self._vector_store.search(query)
+        return [r.document.content for r in results]
     except VectorStoreError:
         logger.warning("Vector store unavailable, continuing without context")
         return []  # Graceful degradation

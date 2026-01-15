@@ -56,7 +56,8 @@ Cato (Chat at the Terminal Orchestrator) exists to provide maximum control over 
   - What it is used for
   - Pointers to common functions/classes/methods
   - How to add legitimate elements
-- An `agent.txt` file should exist at root to help any model/agent quickly navigate the codebase.
+- Root-level AI guidance lives in `AGENTS.md` and `WARP.md`.
+- Subdirectory `agent.md` files follow the standard in `Project/Spec/technical/TECH_CODE_ORGANISATION.md`.
 - Goal: minimise code scanning by models/agents to understand the system.
 
 ### User Documentation

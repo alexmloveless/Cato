@@ -2,7 +2,7 @@
 
 ## Overview
 
-The productivity system provides task management, list organization, and time tracking through natural language interaction. It uses a dedicated AI agent to parse requests and manage productivity data stored in SQLite.
+The productivity system provides task management and list organization through explicit slash commands. It uses a dedicated agent/service to manage productivity data stored in SQLite.
 
 
 ## Entity Types
@@ -14,12 +14,12 @@ Tasks represent actionable items with optional due dates, categories, and priori
 **Fields:**
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| content | string | Yes | Task description |
+| title | string | Yes | Task title |
+| description | string | No | Task details |
 | status | enum | No | active, in_progress, completed, deleted |
 | due_date | datetime | No | When task is due |
 | category | string | No | Project or category name |
 | priority | enum | No | urgent, high, medium, low |
-| tags | list | No | Additional tags |
 | pseudo_id | string | Auto | Human-readable ID (task001, task002) |
 | created_at | datetime | Auto | Creation timestamp |
 | updated_at | datetime | Auto | Last update timestamp |
@@ -38,9 +38,9 @@ Lists provide a way to organize items into named collections (shopping, projects
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | content | string | Yes | Item description |
-| list_name | string | Yes | Name of the list |
-| status | enum | No | active, completed, archived |
-| category | string | No | Sub-category within list |
+| list_id | string | Yes | ID of the parent list |
+| checked | bool | No | Item completed flag |
+| position | int | No | Sort/order position |
 | pseudo_id | string | Auto | Human-readable ID (001) |
 | created_at | datetime | Auto | Creation timestamp |
 
@@ -107,15 +107,15 @@ Display lists and list items.
 
 **List Items Display:**
 ```
-┌─────────────────────────────────────────────────────────┐
-│ List: shopping (12 items)                               │
-├───────┬─────┬──────────┬────────────────────┬───────────┤
-│ ID    │ S   │ Category │ Item               │ Added     │
-├───────┼─────┼──────────┼────────────────────┼───────────┤
-│ 001   │ 🔵  │ dairy    │ Milk               │ 01/10     │
-│ 002   │ 🔵  │ produce  │ Apples             │ 01/10     │
-│ 003   │ ✅  │ bakery   │ Bread              │ 01/09     │
-└───────┴─────┴──────────┴────────────────────┴───────────┘
+┌───────────────────────────────────────────────┐
+│ List: shopping (12 items)                     │
+├───────┬─────┬────────────────────┬───────────┤
+│ ID    │ S   │ Item               │ Added     │
+├───────┼─────┼────────────────────┼───────────┤
+│ 001   │ 🔵  │ Milk               │ 01/10     │
+│ 002   │ 🔵  │ Apples             │ 01/10     │
+│ 003   │ ✅  │ Bread              │ 01/09     │
+└───────┴─────┴────────────────────┴───────────┘
 ```
 
 

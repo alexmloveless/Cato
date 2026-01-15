@@ -558,7 +558,7 @@ cato/commands/
 ├── files.py             # /attach, /pwd, /cd, /ls, /cat
 ├── export.py            # /writecode, /writemd, /writejson
 ├── vector.py            # /vadd, /vdoc, /vquery, /vstats
-├── productivity.py      # /st, /list, /timelog
+├── productivity.py      # /st, /list
 ├── web.py               # /web, /url
 └── tts.py               # /speak, /speaklike
 ```

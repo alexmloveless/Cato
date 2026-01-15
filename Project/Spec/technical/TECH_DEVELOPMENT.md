@@ -497,7 +497,8 @@ cato --debug
 - Numpy-format docstrings on all public functions
 - Type hints on all function signatures
 - README.md in each module directory
-- `agent.txt` at repo root for AI navigation
+- `AGENTS.md` and `WARP.md` at repo root for AI navigation and rules
+- Subdirectory `agent.md` files follow `Project/Spec/technical/TECH_CODE_ORGANISATION.md`
 
 ### User Documentation
 - In-app help system (`/help`)

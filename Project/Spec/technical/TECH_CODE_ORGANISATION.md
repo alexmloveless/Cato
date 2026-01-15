@@ -6,7 +6,8 @@ Cato's codebase must be organised to minimise the effort required for any develo
 ## Directory Structure
 
 ### Root Level
-- `agent.txt` - Navigation file for AI models/agents explaining codebase structure and common tasks
+- `AGENTS.md` - Repo-level AI navigation and guidance
+- `WARP.md` - Warp-specific AI guidance
 - `README.md` - Standard project readme
 - `pyproject.toml` / `setup.py` - Package configuration
 - `cato/` - Main package directory
@@ -27,17 +28,14 @@ Commands should be organised for easy addition:
   1. Creating/editing one file
   2. No manual registration in other files
 
-## agent.txt Specification
-The root `agent.txt` file should provide:
-1. Brief description of Cato
-2. Directory structure overview
-3. Quick navigation to common tasks:
-   - Adding a new command
-   - Modifying configuration
-   - Adding vector store functionality
-   - Modifying display/UI
-4. Pointers to relevant documentation
-5. List of approved dependencies
+## Subdirectory agent.md Standard
+Create `agent.md` files in subdirectories that contain non-trivial code. Each file should be concise and include:
+1. Purpose and scope of the directory
+2. Key files and entry points
+3. Public APIs or protocols defined in the directory
+4. Config keys or environment variables the directory depends on
+5. Common changes or extension points
+6. Tests: where they live and how to run the relevant ones
 
 ## File Organisation Principles
 

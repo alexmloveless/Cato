@@ -21,11 +21,11 @@ The vector store provides persistent conversation context using vector embedding
 - Automatic persistence on write
 
 ### Embeddings
-- Model: OpenAI text-embedding-3-small (default)
-- Dimensions: 1536 (configurable)
-- Requires OPENAI_API_KEY environment variable
+- Provider: OpenAI or Ollama (configurable)
+- Model and dimensions are configurable
+- Provider API key required when applicable
 
-The model should be configurable.
+See CONFIG_REFERENCE.md for canonical keys.
 
 ## Exchange Storage
 
@@ -35,12 +35,12 @@ Each conversation exchange stores:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| exchange_id | UUID | Unique identifier |
+| id | UUID | Unique identifier |
 | thread_id | UUID | Conversation thread grouping |
 | session_id | UUID | Application session identifier |
-| user_prompt | string | User's input message |
-| assistant_response | string | Assistant's response |
-| timestamp | float | Unix timestamp |
+| user_message | string | User's input message |
+| assistant_message | string | Assistant's response |
+| timestamp | string | ISO 8601 timestamp |
 | prior_exchange_ids | list | Context exchanges used |
 | thread_session_id | string | Composite ID (thread_id_session_id) |
 | thread_continuation_seq | int | Continuation sequence (0 for original) |
@@ -48,8 +48,8 @@ Each conversation exchange stores:
 ### Storage Flow
 
 1. User sends message, assistant responds
-2. Combined text created: `"User: {prompt}\nAssistant: {response}"`
-3. Text embedded using OpenAI embeddings
+2. Combined text created: `"User: {user_message}\nAssistant: {assistant_message}"`
+3. Text embedded using the configured embedding provider
 4. Exchange stored in ChromaDB with metadata
 
 ### Automatic Storage
@@ -62,7 +62,7 @@ All conversation exchanges are automatically stored (except in dummy mode) for:
 ## Similarity Search
 
 ### Query Process
-1. Query text embedded using same model
+1. Query text embedded using the configured embedding provider
 2. ChromaDB performs cosine similarity search
 3. Results filtered by similarity threshold (static or dynamic)
 4. Top-k results returned
@@ -91,16 +91,17 @@ When `dynamic_threshold: true` in config:
 - Shorter context → lower threshold (more permissive retrieval)
 - Longer context → higher threshold (more selective)
 - Algorithm: Simple linear adjustment based on context message count
-- Can be disabled to use static `context_similarity_threshold`
+- Can be disabled to use static `similarity_threshold`
 
 ### Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| context_similarity_threshold | 0.65 | Minimum similarity score (static, used when dynamic disabled) |
+| similarity_threshold | 0.65 | Minimum similarity score (static, used when dynamic disabled) |
 | dynamic_threshold | true | Enable dynamic threshold adjustment |
 | retrieval_strategy | default | Which retrieval strategy to use |
 | context_results | 5 | Maximum context exchanges returned |
+| search_context_window | 3 | Recent exchanges used to build the search query |
 
 ### Context Retrieval
 
@@ -110,7 +111,8 @@ During response generation:
 2. **Select strategy** based on configuration
 3. **Search regular context** using configured retrieval strategy
 4. **Filter and rank** by similarity score
-5. **Inject into prompt** based on context mode
+5. **Inject into prompt** when enabled and above similarity threshold
+6. **Display context** based on `context_mode` (display-only)
 
 ## Document Indexing
 
@@ -131,7 +133,7 @@ Long documents are split into chunks for better retrieval.
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| strategy | semantic | Chunking strategy |
+| chunking_strategy | semantic | Chunking strategy |
 | chunk_size | 1000 | Target chunk size (characters) |
 | chunk_overlap | 100 | Overlap between chunks |
 | max_chunk_size | 1500 | Maximum chunk size (hard limit) |
@@ -227,7 +229,7 @@ Display vector store statistics.
 │ Metric           │ Value                                     │
 ├──────────────────┼───────────────────────────────────────────┤
 │ Total Exchanges  │ 1,234                                     │
-│ Store Path       │ ./vector_stores/default/                  │
+│ Store Path       │ ~/.local/share/cato/vectordb              │
 │ Vector Dimension │ 1536                                      │
 │ Embedding Model  │ text-embedding-3-small                    │
 └──────────────────┴───────────────────────────────────────────┘
@@ -273,28 +275,22 @@ cato --vector-store-stats
 ```yaml
 vector_store:
   enabled: true
-  path: ./vector_stores/default/
-  similarity_threshold: 0.65
-  chat_window: 3
+  backend: chromadb
+  path: ~/.local/share/cato/vectordb
+  collection_name: cato_memory
   context_results: 5
   search_context_window: 3
-```
-
-### Chunking Config
-```yaml
-chunking:
-  strategy: semantic
+  similarity_threshold: 0.65
+  dynamic_threshold: true
+  retrieval_strategy: default
+  embedding_provider: openai
+  embedding_model: text-embedding-3-small
+  embedding_dimensions: 1536
+  chunking_strategy: semantic
   chunk_size: 1000
   chunk_overlap: 100
   max_chunk_size: 1500
   preserve_sentence_boundaries: true
-```
-
-### Embedding Config
-```yaml
-embedding:
-  model: text-embedding-3-small
-  dimensions: 1536
 ```
 
 ## Error Handling

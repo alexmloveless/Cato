@@ -8,7 +8,7 @@
 
 Cato provides a unified terminal interface for:
 - Conversational AI interactions with multiple LLM providers
-- Personal productivity management (tasks, lists, time tracking)
+- Personal productivity management (tasks, lists)
 - File operations and code management
 - Persistent conversational context with retrieval
 - Text-to-speech synthesis
@@ -40,16 +40,14 @@ Cato provides a unified terminal interface for:
 User input is processed in the following priority order:
 
 1. **Slash commands**: Input starting with `/` routes to command parser
-2. **Productivity routing**: Input starting with `%` routes to productivity agent
-3. **File routing**: Input starting with `@` routes to file tools agent
-4. **Regular chat**: All other input sent to LLM with context retrieval
+2. **Regular chat**: All other input sent to LLM with context retrieval
 
 ### Session State
 - **Session ID**: Unique UUID generated per application launch
 - **Thread ID**: Unique UUID for conversation continuity
 - **Message history**: List of messages (system, user, assistant)
 - **Current directory**: For file operations
-- **Context mode**: Controls display of retrieved context (on/off/summary)
+- **Context mode**: Debug display mode for showing retrieved context (off/on/summary)
 
 ## Specification Documents
 
@@ -59,12 +57,18 @@ This specification is divided into the following functional areas:
 |----------|-------------|
 | SPEC_CORE_CHAT.md | LLM integration, message processing, display |
 | SPEC_COMMAND_SYSTEM.md | Slash command framework and all commands |
-|| SPEC_PRODUCTIVITY.md | Tasks, lists, timelog |
+| SPEC_PRODUCTIVITY.md | Tasks, lists |
 | SPEC_FILE_OPERATIONS.md | File commands, attach, export, aliases |
 | SPEC_VECTOR_STORE.md | Conversation storage, similarity search |
 | SPEC_TTS.md | Text-to-speech functionality |
 | SPEC_WEB_SEARCH.md | Web search and URL content fetching |
 | SPEC_CONFIGURATION.md | All configuration options |
+| SPEC_COMMAND_LINE.md | CLI options, modes, and headless behavior |
+
+Canonical references:
+- CONFIG_REFERENCE.md (config keys, paths, context semantics)
+- DATA_MODELS.md (canonical data models)
+- GLOSSARY.md (terminology)
 
 ## User Interface
 
@@ -79,9 +83,9 @@ Type your messages to chat with the LLM.
 Type /help to see available commands.
 Type /exit to quit the application.
 
-Config: Margaret (~/.cato/margaret.yaml)
+Config: Margaret (~/.config/cato/margaret.yaml)
 Model: gpt-4o-mini
-Vector Store: enabled (./vector_stores/default/)
+Vector Store: enabled (~/.local/share/cato/vectordb)
 TTS: enabled
 ───────────────────────────────────────────────────────────
 ```
@@ -117,7 +121,7 @@ Default: `🐱 > ` (configurable via `display.prompt_symbol`)
 - **LLM Clients**: OpenAI, Anthropic, Google Generative AI (via provider SDKs)
 - **Local LLM**: Ollama (optional)
 - **Vector Database**: ChromaDB
-- **Embeddings**: OpenAI Embeddings API
+- **Embeddings**: OpenAI or Ollama (via embedding provider)
 - **Productivity Storage**: SQLite
 - **CLI Framework**: Rich (formatting), prompt_toolkit (input)
 - **Configuration**: PyYAML, Pydantic (validation)

@@ -16,12 +16,11 @@ The core chat system provides the primary LLM interaction loop, managing convers
 | Ollama | llama2, mistral, codellama (local) | N/A (local) |
 
 ### Provider Selection
+Provider selection is explicit:
+- `llm.provider` selects the provider
+- `llm.model` must match the provider's exact API model identifier
 
-The provider is automatically determined from the model name:
-- `gpt-*`, `o1-*` → OpenAI
-- `claude-*` → Anthropic
-- `gemini-*` → Google
-- Other models → Ollama (local)
+See CONFIG_REFERENCE.md for canonical config keys.
 
 ### LLM Parameters
 
@@ -47,8 +46,6 @@ The provider is automatically determined from the model name:
 User Input
     ↓
 Check for slash command (/) → Route to CommandParser
-    ↓
-Check for productivity marker (%) → Route to ProductivityAgent
     ↓
 Regular message processing:
     1. Add user message to history
@@ -97,16 +94,14 @@ Before generating a response, the system:
 
 1. **Builds search query** from recent non-command exchanges
    - Excludes messages starting with `/`
-   - Uses configurable `search_context_window` (default: -1 = all exchanges)
+   - Uses configurable `search_context_window`
 
 2. **Retrieves similar exchanges** from vector store
    - Uses similarity threshold from config
    - Returns up to `context_results` exchanges
 
-3. **Injects context** into API request based on `context_mode`:
-   - `off`: No context injection (default)
-   - `on`: Full context with excerpts shown
-   - `summary`: Context injected but only count displayed
+3. **Injects context** into the API request when vector store is enabled and results pass the similarity threshold
+4. **Displays context** based on `context_mode` (display-only)
 
 ### Context Display Modes
 
@@ -114,9 +109,9 @@ Controlled via `/showcontext` command:
 
 | Mode | Behavior |
 |------|----------|
-| off | No context shown or injected |
-| on | Context injected, excerpts displayed |
-| summary | Context injected, only count displayed |
+| off | No context shown |
+| on | Context excerpts displayed |
+| summary | Only a count displayed |
 
 When context is used, indicators appear before the response:
 ```

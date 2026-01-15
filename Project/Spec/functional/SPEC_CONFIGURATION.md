@@ -24,13 +24,14 @@ The package includes a default configuration file with:
 - Extensive inline comments documenting each option
 - This serves as both default values and user documentation
 
+See CONFIG_REFERENCE.md for canonical keys, defaults, and paths.
+
 ## Configuration File
 
 ### File Locations (checked in order)
 1. Path specified via `--config` CLI argument
-2. `~/.cato/config.yaml`
-3. `./cato.yaml` (current directory)
-4. `./.cato.yaml` (current directory, hidden)
+2. `CATO_CONFIG_FILE` environment variable
+3. `~/.config/cato/config.yaml`
 
 ### File Format
 YAML configuration with nested sections:
@@ -61,6 +62,7 @@ section_2:
 
 | Setting | Type | Default | Range | Description |
 |---------|------|---------|-------|-------------|
+| provider | string | openai | openai, anthropic, google, ollama | LLM provider selection |
 | model | string | gpt-4o-mini | - | LLM model identifier |
 | temperature | float | 1.0 | 0.0-2.0 | Response randomness |
 | max_tokens | int | 4000 | >0 | Maximum response tokens |
@@ -69,30 +71,34 @@ section_2:
 | override_base_prompt | bool | false | - | Only has an effect if base_prompt_file is populated. If true will override the base in its entirety. If false, it will append. |
 
 ### Vector Store Configuration (`vector_store`)
+See CONFIG_REFERENCE.md for canonical structure.
 
 | Setting | Type | Default | Range | Description |
 |---------|------|---------|-------|-------------|
 | enabled | bool | true | - | Enable vector store |
-| path | string | ./vector_stores/default/ | - | Storage directory |
-| chat_window | int | -1 | >0 | The number of recent exchanges to maintain in the current chat. This is to limit the size of of the context. A value of -1 means keep all exchanges, |
+| backend | string | chromadb | - | Vector store backend |
+| path | string | ~/.local/share/cato/vectordb | - | Storage directory |
+| collection_name | string | cato_memory | - | Collection name |
+| chat_window | int | -1 | >0 | Max recent exchanges to retain in memory (-1 = all) |
 | context_results | int | 5 | >0 | Max context exchanges returned |
-| context_similarity_threshold | float | 0.65 | 0.0-1.0 | Minimum similarity for context (static threshold) |
-| dynamic_threshold | bool | true | - | Enable dynamic similarity thresholding based on context length |
+| similarity_threshold | float | 0.65 | 0.0-1.0 | Minimum similarity score |
+| dynamic_threshold | bool | true | - | Enable dynamic similarity thresholding |
 | retrieval_strategy | string | default | - | Similarity retrieval strategy (see SPEC_VECTOR_STORE.md) |
-| search_context_window | int | 3 | >0 | The number of recent exchanges to use in the vector for the similarity search |
+| search_context_window | int | 3 | >0 | Recent exchanges used to build the search query |
 
-### Embedding Configuration (`embedding`)
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| model | string | text-embedding-3-small | Embedding model |
-| dimensions | int | 1536 | Vector dimensions |
-
-### Chunking Configuration (`chunking`)
+**Embedding settings** (within `vector_store`)
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| strategy | string | semantic | truncate, fixed_size, semantic, hybrid |
+| embedding_provider | string | openai | openai, ollama |
+| embedding_model | string | text-embedding-3-small | Embedding model |
+| embedding_dimensions | int | 1536 | Vector dimensions |
+
+**Chunking settings** (within `vector_store`)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| chunking_strategy | string | semantic | truncate, fixed_size, semantic, hybrid |
 | chunk_size | int | 1000 | Target chunk size (chars) |
 | chunk_overlap | int | 100 | Overlap between chunks (chars) |
 | max_chunk_size | int | 1500 | Maximum chunk size |
@@ -117,7 +123,7 @@ section_2:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| level | string | WARN | DEBUG, INFO, WARN, ERROR |
+| level | string | WARNING | DEBUG, INFO, WARNING, ERROR |
 | format | string | (standard format) | Log message format |
 | show_context | bool | false | Show context in INFO logs |
 
@@ -151,37 +157,9 @@ locations:
   config: ~/.config
 ```
 
-## Command-Line Arguments
+## Command-Line Interface
 
-### Configuration
-| Argument | Description |
-|----------|-------------|
-| `--config <path>` | Path to configuration file |
-
-
-### Logging
-| Argument | Description |
-|----------|-------------|
-| `--log-level <level>` | DEBUG, INFO, WARN, ERROR |
-
-### Special Modes
-| Argument | Description |
-|----------|-------------|
-| `--debug` | Enable debug mode |
-| `--dummy-mode` | Use mock LLM responses |
-
-### Headless Operations
-| Argument | Description |
-|----------|-------------|
-| `--add-to-vector-store <path>` | Add document and exit |
-| `--query-vector-store <query>` | Query vector store and exit |
-| `--vector-store-stats` | Show stats and exit |
-
-### Other
-| Argument | Description |
-|----------|-------------|
-| `--version` | Show version and exit |
-| `--help` | Show help and exit |
+CLI options, modes (including headless), and outputs are specified in `SPEC_COMMAND_LINE.md`. This document focuses on configuration data and precedence; CLI overrides remain the highest-precedence layer in the configuration stack.
 
 ## Environment Variables
 
@@ -226,6 +204,7 @@ If there is an appropriate existing parser or validator in pydantic (e.g. for fi
 ### Minimal Configuration
 ```yaml
 llm:
+  provider: openai
   model: gpt-4o-mini
 ```
 
@@ -235,6 +214,7 @@ profile_name: Development
 debug: true
 
 llm:
+  provider: openai
   model: gpt-4o-mini
   temperature: 0.7
 
@@ -242,7 +222,7 @@ logging:
   level: DEBUG
 
 vector_store:
-  path: ./vector_stores/dev/
+  path: ~/.local/share/cato/vectordb-dev
 ```
 
 ### Production Configuration
@@ -250,6 +230,7 @@ vector_store:
 profile_name: Production
 
 llm:
+  provider: openai
   model: gpt-4o
   temperature: 1.0
   max_tokens: 8000
@@ -259,7 +240,7 @@ vector_store:
   similarity_threshold: 0.7
 
 logging:
-  level: WARN
+  level: WARNING
 ```
 
 ### Local Development (Ollama)
@@ -267,6 +248,7 @@ logging:
 profile_name: Local Ollama
 
 llm:
+  provider: ollama
   model: llama2
   temperature: 0.8
 

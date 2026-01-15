@@ -470,6 +470,7 @@ def _load_custom_theme(self, path: Path) -> Theme:
 ```
 
 ## Context Display
+Context display is a debug-only view. Context injection into the LLM request always occurs when vector store retrieval passes the similarity threshold.
 
 ### Retrieved Context
 ```python

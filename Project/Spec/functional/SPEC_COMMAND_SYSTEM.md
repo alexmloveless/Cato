@@ -127,7 +127,7 @@ Change logging verbosity.
 /loglevel           # Show current level
 /loglevel DEBUG     # Set to DEBUG
 /loglevel INFO      # Set to INFO
-/loglevel WARN      # Set to WARN
+/loglevel WARNING   # Set to WARNING
 /loglevel ERROR     # Set to ERROR
 ```
 
@@ -139,12 +139,15 @@ Toggle context display mode for all future exchanges.
 /showcontext        # Toggle on/off (shows new state)
 /showcontext on     # Enable context display with excerpts
 /showcontext off    # Disable context display
+/showcontext summary # Show only a count of retrieved context
 ```
 
 **Behavior:**
 - Acts as a **toggle** - calling `/showcontext` without arguments flips the current state
 - When **on**: Context excerpts displayed before each response
+- When **summary**: Only a count is displayed
 - When **off**: No context information displayed (default)
+- Context injection is always on when vector store is enabled and results pass the similarity threshold
 - State persists for the duration of the session
 
 #### /continue, /cont
@@ -383,7 +386,6 @@ Speak with custom instructions.
 | /speaklike | /sl |
 | /st | /show-tasks, /tasks |
 | /list | /lists, /show-lists |
-| /timelog | /tl, /time |
 | /writemd | /w |
 
 ## Error Handling

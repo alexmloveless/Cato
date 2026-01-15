@@ -89,7 +89,8 @@ Presentation → Commands → Services → Providers → Storage → Core
 ```
 cato/                        # Repository root
 ├── pyproject.toml           # Package metadata (uv/PEP 621)
-├── agent.txt                # AI codebase navigation
+├── AGENTS.md                # AI navigation (repo-level)
+├── WARP.md                  # AI rules for Warp
 ├── cato/                    # Python package
 │   ├── __main__.py          # Entry point: python -m cato
 │   ├── bootstrap.py         # Component wiring
@@ -109,7 +110,8 @@ cato/                        # Repository root
 
 ## Code Organisation Requirements
 
-- Create `agent.txt` at root for AI navigation
+- Root-level AI guidance lives in `AGENTS.md` and `WARP.md`
+- Subdirectory `agent.md` files follow the standard in `Project/Spec/technical/TECH_CODE_ORGANISATION.md`
 - Each module directory must have a README explaining purpose and extension
 - Numpy-format docstrings, type hints on all functions
 - Relative imports within package

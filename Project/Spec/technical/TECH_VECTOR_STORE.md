@@ -214,6 +214,26 @@ class ChromaVectorStore:
 
 ## Embedding Provider
 
+### Protocol
+```python
+from typing import Protocol
+
+class EmbeddingProvider(Protocol):
+    """Protocol for embedding providers."""
+
+    async def embed(self, text: str) -> list[float]:
+        """Generate embedding for single text."""
+        ...
+
+    async def embed_batch(
+        self,
+        texts: list[str],
+        batch_size: int = 100,
+    ) -> list[list[float]]:
+        """Generate embeddings for multiple texts."""
+        ...
+```
+
 ### OpenAI Embeddings
 ```python
 class OpenAIEmbeddingProvider:
@@ -274,6 +294,26 @@ class OpenAIEmbeddingProvider:
             embeddings.extend([d.embedding for d in response.data])
         
         return embeddings
+```
+
+### Ollama Embeddings
+```python
+class OllamaEmbeddingProvider:
+    """Ollama local embeddings."""
+
+    def __init__(self, config: EmbeddingConfig) -> None:
+        self._base_url = config.base_url or "http://localhost:11434"
+        self._model = config.model
+
+    async def embed(self, text: str) -> list[float]:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self._base_url}/api/embeddings",
+                json={"model": self._model, "prompt": text},
+                timeout=30,
+            )
+            response.raise_for_status()
+            return response.json()["embedding"]
 ```
 
 ## Document Chunking
@@ -455,6 +495,9 @@ class Exchange(BaseModel):
     user_message: str
     assistant_message: str
     timestamp: datetime
+    prior_exchange_ids: list[str]
+    thread_session_id: str
+    thread_continuation_seq: int
     metadata: dict
 
 
@@ -614,25 +657,47 @@ vector_store:
   backend: "chromadb"
   path: "~/.local/share/cato/vectordb"
   collection_name: "cato_memory"
-  
+
+  # Retrieval settings
+  context_results: 5
+  search_context_window: 3
+  similarity_threshold: 0.7
+  dynamic_threshold: true
+  retrieval_strategy: "default"
+
   # Embedding settings
+  embedding_provider: "openai"
   embedding_model: "text-embedding-3-small"
   embedding_dimensions: 1536
-  
+
   # Chunking settings
+  chunking_strategy: "semantic"
   chunk_size: 1000
   chunk_overlap: 200
-  
-  # Query settings
-  default_results: 5
-  max_results: 20
-  similarity_threshold: 0.7  # Minimum similarity score
+  max_chunk_size: 1500
+  preserve_sentence_boundaries: true
 ```
 
 ## Initialisation
 
 ### Bootstrap Integration
 ```python
+def create_embedding_provider(config: VectorStoreConfig) -> EmbeddingProvider:
+    """Create embedding provider based on config."""
+    if config.embedding_provider == "openai":
+        return OpenAIEmbeddingProvider(
+            EmbeddingConfig(
+                api_key=os.environ.get("OPENAI_API_KEY"),
+                model=config.embedding_model,
+            )
+        )
+    if config.embedding_provider == "ollama":
+        return OllamaEmbeddingProvider(
+            EmbeddingConfig(
+                model=config.embedding_model,
+            )
+        )
+    raise ConfigurationError(f"Unknown embedding provider: {config.embedding_provider}")
 def create_vector_store(config: CatoConfig) -> VectorStore | None:
     """
     Create vector store if enabled.
@@ -652,12 +717,7 @@ def create_vector_store(config: CatoConfig) -> VectorStore | None:
         return None
     
     try:
-        embedding_provider = OpenAIEmbeddingProvider(
-            EmbeddingConfig(
-                api_key=os.environ.get("OPENAI_API_KEY"),
-                model=config.vector_store.embedding_model,
-            )
-        )
+        embedding_provider = create_embedding_provider(config.vector_store)
         
         store = ChromaVectorStore(
             config=config.vector_store,

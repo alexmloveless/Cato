@@ -1,7 +1,7 @@
 # Storage Technical Specification
 
 ## Overview
-Cato uses SQLite for structured data storage (tasks, lists, time logs). The database provides persistent storage for productivity features with a simple data access layer.
+Cato uses SQLite for structured data storage (tasks, lists). The database provides persistent storage for productivity features with a simple data access layer.
 
 ## Database Location
 ```
@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT,
-    status TEXT NOT NULL DEFAULT 'active',  -- active, in_progress, completed
-    priority TEXT DEFAULT 'medium',          -- low, medium, high
+    status TEXT NOT NULL DEFAULT 'active',  -- active, in_progress, completed, deleted
+    priority TEXT DEFAULT 'medium',          -- low, medium, high, urgent
     category TEXT,
     due_date TEXT,                           -- ISO 8601 format
     created_at TEXT NOT NULL,                -- ISO 8601 format
@@ -60,25 +60,6 @@ CREATE TABLE IF NOT EXISTS list_items (
 CREATE INDEX IF NOT EXISTS idx_list_items_list_id ON list_items(list_id);
 ```
 
-### Time Logs Table
-```sql
-CREATE TABLE IF NOT EXISTS time_logs (
-    id TEXT PRIMARY KEY,
-    task_id TEXT,                            -- Optional link to task
-    description TEXT NOT NULL,
-    category TEXT,
-    start_time TEXT NOT NULL,                -- ISO 8601 format
-    end_time TEXT,                           -- ISO 8601 format (NULL if running)
-    duration_seconds INTEGER,                -- Computed on stop
-    created_at TEXT NOT NULL,
-    metadata TEXT,
-    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_time_logs_task_id ON time_logs(task_id);
-CREATE INDEX IF NOT EXISTS idx_time_logs_start_time ON time_logs(start_time);
-CREATE INDEX IF NOT EXISTS idx_time_logs_category ON time_logs(category);
-```
 
 ### Sessions Table
 ```sql
@@ -145,8 +126,8 @@ class Task(BaseModel):
     id: str
     title: str
     description: str | None
-    status: Literal["active", "in_progress", "completed"]
-    priority: Literal["low", "medium", "high"]
+    status: Literal["active", "in_progress", "completed", "deleted"]
+    priority: Literal["low", "medium", "high", "urgent"]
     category: str | None
     due_date: datetime | None
     created_at: datetime
@@ -450,27 +431,7 @@ MIGRATIONS = [
         """,
     ),
     Migration(
-        name="002_time_logs",
-        sql="""
-        CREATE TABLE IF NOT EXISTS time_logs (
-            id TEXT PRIMARY KEY,
-            task_id TEXT,
-            description TEXT NOT NULL,
-            category TEXT,
-            start_time TEXT NOT NULL,
-            end_time TEXT,
-            duration_seconds INTEGER,
-            created_at TEXT NOT NULL,
-            metadata TEXT,
-            FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL
-        );
-        
-        CREATE INDEX IF NOT EXISTS idx_time_logs_task_id ON time_logs(task_id);
-        CREATE INDEX IF NOT EXISTS idx_time_logs_start_time ON time_logs(start_time);
-        """,
-    ),
-    Migration(
-        name="003_sessions",
+        name="002_sessions",
         sql="""
         CREATE TABLE IF NOT EXISTS sessions (
             id TEXT PRIMARY KEY,
@@ -508,7 +469,6 @@ class Storage:
         self._db = db
         self.tasks = TaskRepository(db)
         self.lists = ListRepository(db)
-        self.time_logs = TimeLogRepository(db)
         self.sessions = SessionRepository(db)
     
     async def connect(self) -> None:
