@@ -26,12 +26,12 @@ This file tracks implementation progress across agent sessions. **Agents MUST up
 
 ## Current Focus
 
-**Phase**: Phase 6 complete
-**Branch**: `feature/phase-06-services`
-**Next Task**: Phase 7.1 - Bootstrap Module
+**Phase**: Phase 7 complete
+**Branch**: `feature/phase-07-bootstrap`
+**Next Task**: Phase 8.1 - Core Commands
 **Blockers**: None
 
-**Last Updated**: 2026-01-15T21:55:00Z
+**Last Updated**: 2026-01-15T22:00:00Z
 
 ---
 
@@ -44,7 +44,7 @@ This file tracks implementation progress across agent sessions. **Agents MUST up
 | 3 | Provider Layer | ✅ Complete | `feature/phase-03-providers` |
 | 4 | Display Layer | ✅ Complete | `feature/phase-04-display` |
 | 5 | Command Framework | ✅ Complete | `feature/phase-05-commands` |
-| 6 | Core Services | ⬜ Not Started | `feature/phase-06-services` |
+| 6 | Core Services | ⬜ Not Started | `feature/phase-07-bootstrap` |
 | 7 | Bootstrap & REPL | ⬜ Not Started | `feature/phase-07-bootstrap` |
 | 8 | Core Commands (MVP) | ⬜ Not Started | `feature/phase-08-core-commands` |
 | 9 | Vector Store | ⬜ Not Started | `feature/phase-09-vector` |
@@ -187,10 +187,10 @@ Status Legend: ⬜ Not Started | 🔄 In Progress | ✅ Complete | ⏸️ Blocke
 **Goal**: Runnable application with basic chat.
 
 #### 7.1 Bootstrap Module
-- [ ] Create `cato/bootstrap.py`
+- [x] Create `cato/bootstrap.py`
 
 #### 7.2 Application Class & REPL
-- [ ] Create `cato/app.py`
+- [x] Create `cato/app.py`
 
 #### 7.3 CLI Entry Point
 - [ ] Update `cato/main.py` with CLI arguments
@@ -357,4 +357,5 @@ Record significant sessions here for continuity.
 | 2026-01-15 | Claude | Phase 4 complete: display layer with Rich output and prompt_toolkit input |
 | 2026-01-15 | Claude | Phase 5 complete: command framework with decorator registration |
 
-| 2026-01-15 | Claude | Phase 6 complete: core services with Conversation and ChatService |
+| 2026-01-15 | Claude | Phase 7 complete: core services with Conversation and ChatService |
+| 2026-01-15 | Claude | Phase 7 complete: bootstrap module, Application class, REPL loop |
