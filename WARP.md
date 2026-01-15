@@ -1,13 +1,31 @@
 # AGENTS.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+This file provides guidance to AI agents (Warp, Claude, etc.) when working with code in this repository.
 
-## Current Status (Actual)
-- **Implementation has not started**. This repo currently contains specifications only.
-- The authoritative source of truth is `Project/Spec/`.
+## Current Status
+- **Implementation in progress**. Check `Project/PROGRESS.md` for current state.
+- The authoritative source of truth for requirements is `Project/Spec/`.
+- The authoritative source of truth for implementation progress is `Project/PROGRESS.md`.
 - `AGENTS.md` is a symlink to this file.
 
+## Before Starting Any Work
+
+### 1. Check Progress State
+**ALWAYS** read `Project/PROGRESS.md` first to understand:
+- Which phases are complete
+- Which phase/task is currently in progress
+- What remains to be done
+
+### 2. Determine Current Branch
+Run `git branch` and `git status` to confirm:
+- You are on the correct feature branch for the phase you're working on
+- There are no uncommitted changes from a previous session
+
+### 3. Review the Implementation Plan
+The full implementation plan is in the Warp plan system. If you cannot access it, `Project/PROGRESS.md` contains phase summaries.
+
 ## Where to Look
+- `Project/PROGRESS.md` — **implementation progress tracker (update this!)**
 - `Project/Spec/` — canonical functional + technical specifications
 - `Project/Notes/` — dated human notes
 - `Project/Reports/` — critical agent reports on project state
