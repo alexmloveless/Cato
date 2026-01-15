@@ -2,7 +2,7 @@
 
 ## Overview
 
-The productivity system provides task management, list organization, time tracking, and memory storage through natural language interaction. It uses a dedicated AI agent to parse requests and manage productivity data stored in SQLite.
+The productivity system provides task management, list organization, and time tracking through natural language interaction. It uses a dedicated AI agent to parse requests and manage productivity data stored in SQLite.
 
 
 ## Entity Types
@@ -147,8 +147,3 @@ A dedicated AI agent processes productivity requests:
 
 ### Response Format
 Productivity responses are displayed in the assistant panel but not added to conversation history, keeping the main LLM context clean.
-
-### Vector Store Integration
-Productivity exchanges are stored in the vector store for:
-- Future context retrieval
-- Thread continuation support

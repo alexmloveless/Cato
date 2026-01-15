@@ -8,28 +8,25 @@ Cato supports multiple LLM providers through a unified protocol-based abstractio
 ### Interface Definition
 ```python
 from typing import Protocol, AsyncIterator
-from dataclasses import dataclass
+from pydantic import BaseModel
 
-@dataclass
-class Message:
+class Message(BaseModel):
     """Normalised message format."""
     role: Literal["system", "user", "assistant"]
     content: str
 
-@dataclass
-class CompletionResult:
+class TokenUsage(BaseModel):
+    """Token usage statistics."""
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+
+class CompletionResult(BaseModel):
     """Result from LLM completion."""
     content: str
     model: str
     usage: TokenUsage | None = None
     finish_reason: str | None = None
-
-@dataclass
-class TokenUsage:
-    """Token usage statistics."""
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
 
 
 class LLMProvider(Protocol):
@@ -382,9 +379,16 @@ def create_provider(config: CatoConfig) -> LLMProvider:
 
 ### Conversation History
 ```python
+from dataclasses import dataclass, field
+
 @dataclass
 class Conversation:
-    """Manages conversation state and history."""
+    """
+    Manages conversation state and history.
+    
+    Note: Uses dataclass rather than Pydantic as it's mutable internal state,
+    not data crossing system boundaries.
+    """
     
     system_prompt: str
     messages: list[Message] = field(default_factory=list)

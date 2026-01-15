@@ -62,7 +62,7 @@ This document defines Cato's core architectural patterns, component organisation
 #### Services
 - Business logic orchestration
 - Chat service: message handling, context retrieval, response generation
-- Productivity service: task/list/memory operations
+- Productivity service: task/list operations
 - TTS service: text processing, audio generation
 - Web service: search execution, URL fetching
 
@@ -272,7 +272,7 @@ cato/                        # Repository root
 │   │   ├── __init__.py
 │   │   ├── README.md
 │   │   ├── chat.py          # Chat orchestration
-│   │   ├── productivity.py  # Task/list/memory logic
+│   │   ├── productivity.py  # Task/list logic
 │   │   ├── tts.py           # TTS orchestration
 │   │   └── web.py           # Web search orchestration
 │   │
@@ -286,7 +286,7 @@ cato/                        # Repository root
 │   │   ├── files.py         # /attach, /cd, /ls, /cat, /pwd
 │   │   ├── export.py        # /writemd, /writecode, /writejson, etc.
 │   │   ├── vector.py        # /vadd, /vdoc, /vquery, /vstats, /vdelete
-│   │   ├── productivity.py  # /st, /list, /timelog, /remember
+│   │   ├── productivity.py  # /st, /list, /timelog
 │   │   ├── tts.py           # /speak, /speaklike
 │   │   └── web.py           # /web, /url
 │   │

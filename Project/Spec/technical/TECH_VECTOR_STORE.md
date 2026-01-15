@@ -8,19 +8,23 @@ Cato uses ChromaDB for persistent vector storage, enabling semantic search over 
 ### Interface Definition
 ```python
 from typing import Protocol
-from dataclasses import dataclass
+from pydantic import BaseModel, ConfigDict
 
-@dataclass
-class VectorDocument:
-    """Document stored in vector store."""
+class VectorDocument(BaseModel):
+    """
+    Document stored in vector store.
+    
+    Uses Pydantic for validation as data crosses ChromaDB boundary.
+    """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
     id: str
     content: str
     metadata: dict
     embedding: list[float] | None = None  # May not always be returned
 
 
-@dataclass
-class SearchResult:
+class SearchResult(BaseModel):
     """Result from similarity search."""
     document: VectorDocument
     score: float  # Distance/similarity score
@@ -437,9 +441,14 @@ class DocumentProcessor:
 
 ### Conversation Exchange Format
 ```python
-@dataclass
-class Exchange:
-    """A user/assistant exchange for storage."""
+from pydantic import BaseModel
+
+class Exchange(BaseModel):
+    """
+    A user/assistant exchange for storage.
+    
+    Uses Pydantic for validation as data crosses vector store boundary.
+    """
     id: str
     session_id: str
     thread_id: str | None

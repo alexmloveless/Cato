@@ -249,54 +249,138 @@ def main(config: Path | None, model: str | None, debug: bool) -> None:
 
 ## Validation Behaviour
 
-### Unknown Keys
-```python
-class CatoConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+All validation is handled by Pydantic. The config system uses Pydantic's features to enforce constraints and provide defaults.
 
-# During validation
-try:
-    config = CatoConfig.model_validate(data)
-except ValidationError as e:
-    for error in e.errors():
-        if error["type"] == "extra_forbidden":
-            key = ".".join(str(loc) for loc in error["loc"])
-            logger.warning(f"Unknown config key '{key}', ignoring")
-    # Re-validate with extra="ignore" to continue
-    config = CatoConfig.model_validate(data, strict=False)
+### Pydantic Model Configuration
+```python
+from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
+
+class CatoConfig(BaseModel):
+    """Root configuration with validation."""
+    
+    model_config = ConfigDict(
+        extra="ignore",          # Ignore unknown keys (warn separately)
+        validate_default=True,   # Validate default values too
+        str_strip_whitespace=True,
+    )
+    
+    llm: LLMConfig
+    vector_store: VectorStoreConfig
+    storage: StorageConfig
+    display: DisplayConfig
+    commands: CommandConfig
+    logging: LoggingConfig
+    paths: PathConfig
 ```
 
-### Invalid Values
+### Field-Level Validation
+Pydantic handles all value constraints:
 ```python
-def validate_with_fallback(data: dict, defaults: dict) -> CatoConfig:
+class LLMConfig(BaseModel):
+    """LLM configuration with Pydantic validation."""
+    
+    provider: Literal["openai", "anthropic", "google", "ollama"]
+    model: str = Field(min_length=1)  # Non-empty string
+    temperature: float = Field(ge=0.0, le=2.0)
+    max_tokens: int = Field(ge=1, le=200000)
+    timeout_seconds: int = Field(ge=1, le=300)
+```
+
+### Cross-Field Validation
+```python
+class VectorStoreConfig(BaseModel):
+    """Vector store config with cross-field validation."""
+    
+    enabled: bool
+    chunk_size: int = Field(ge=100, le=10000)
+    chunk_overlap: int = Field(ge=0)
+    
+    @field_validator("chunk_overlap")
+    @classmethod
+    def overlap_less_than_size(cls, v: int, info: ValidationInfo) -> int:
+        """Ensure overlap is smaller than chunk size."""
+        if "chunk_size" in info.data and v >= info.data["chunk_size"]:
+            raise ValueError("chunk_overlap must be less than chunk_size")
+        return v
+```
+
+### Unknown Keys Warning
+```python
+def load_config_with_warnings(data: dict) -> CatoConfig:
     """
-    Validate config, falling back to defaults for invalid values.
+    Load config, warning about unknown keys.
     
     Parameters
     ----------
     data
-        User configuration data.
-    defaults
-        Default configuration data.
+        Raw config dict.
     
     Returns
     -------
     CatoConfig
-        Validated configuration, with defaults substituted for invalid values.
+        Validated config (unknown keys ignored).
     """
+    # Check for unknown keys before Pydantic ignores them
+    warn_unknown_keys(data, CatoConfig)
+    
+    # Pydantic validates and ignores unknown keys
+    return CatoConfig.model_validate(data)
+
+
+def warn_unknown_keys(data: dict, model: type[BaseModel], path: str = "") -> None:
+    """Recursively warn about unknown keys in config."""
+    if not isinstance(data, dict):
+        return
+    
+    model_fields = set(model.model_fields.keys())
+    for key in data:
+        full_path = f"{path}.{key}" if path else key
+        if key not in model_fields:
+            logger.warning(f"Unknown config key '{full_path}', ignoring")
+        elif key in model_fields:
+            field_type = model.model_fields[key].annotation
+            # Recurse into nested models
+            if hasattr(field_type, "model_fields"):
+                warn_unknown_keys(data[key], field_type, full_path)
+```
+
+### Validation Error Handling
+```python
+def load_config(user_path: Path | None = None) -> CatoConfig:
+    """
+    Load and validate configuration.
+    
+    On validation error: log the error and exit (fail fast).
+    Invalid config should not silently use defaults—user must fix it.
+    """
+    defaults = load_yaml(get_default_config_path())
+    user_config = load_yaml(user_path) if user_path else {}
+    merged = deep_merge(defaults, user_config)
+    merged = apply_env_overrides(merged)
+    
     try:
-        return CatoConfig.model_validate(data)
+        return load_config_with_warnings(merged)
     except ValidationError as e:
         for error in e.errors():
-            path = list(error["loc"])
-            logger.warning(
-                f"Invalid config value at '{'.'.join(map(str, path))}': "
-                f"{error['msg']}. Using default."
-            )
-            # Reset to default value
-            set_nested(data, path, get_nested(defaults, path))
-        
-        return CatoConfig.model_validate(data)
+            path = ".".join(str(loc) for loc in error["loc"])
+            logger.error(f"Config error at '{path}': {error['msg']}")
+        raise ConfigurationError("Invalid configuration. See errors above.")
+```
+
+### Default Values in Pydantic
+Defaults come from the YAML file, not from Pydantic `Field(default=...)`. This keeps all defaults in one place:
+```python
+# GOOD: Defaults in YAML, Pydantic validates
+class LLMConfig(BaseModel):
+    temperature: float = Field(ge=0.0, le=2.0)  # No default here
+
+# defaults.yaml provides the actual default:
+# llm:
+#   temperature: 1.0
+
+# BAD: Defaults scattered in code
+class LLMConfig(BaseModel):
+    temperature: float = Field(default=1.0, ge=0.0, le=2.0)  # Don't do this
 ```
 
 ## Default Configuration File
@@ -314,7 +398,7 @@ vector_store:
   enabled: true
   backend: "chromadb"
   path: "~/.local/share/cato/vectordb"
-  collection_name: "cato_memory"
+  collection_name: "cato_context"
   embedding_model: "text-embedding-3-small"
   chunk_size: 1000
   chunk_overlap: 200

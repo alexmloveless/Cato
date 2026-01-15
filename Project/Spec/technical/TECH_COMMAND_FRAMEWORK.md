@@ -12,7 +12,12 @@ from dataclasses import dataclass
 
 @dataclass
 class CommandResult:
-    """Result from command execution."""
+    """
+    Result from command execution.
+    
+    Note: Uses dataclass rather than Pydantic as it's internal return data,
+    not data crossing system boundaries.
+    """
     success: bool
     message: str
     data: dict | None = None
@@ -76,6 +81,7 @@ class CommandContext:
     Execution context providing access to application services.
     
     Injected at runtime—commands should not instantiate dependencies.
+    Uses dataclass as it's a dependency container, not external data.
     """
     
     config: CatoConfig

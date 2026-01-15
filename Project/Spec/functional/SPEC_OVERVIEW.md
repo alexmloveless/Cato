@@ -2,15 +2,15 @@
 
 ## Application Summary
 
-**Cato** (Chat at the Terminal Orchestrator) is an interactive command-line LLM chat application with integrated productivity features, file management capabilities, and conversational memory through vector storage.
+**Cato** (Chat at the Terminal Orchestrator) is an interactive command-line LLM chat application with integrated productivity features, file management capabilities, and conversational context through vector storage.
 
 ## Purpose
 
 Cato provides a unified terminal interface for:
 - Conversational AI interactions with multiple LLM providers
-- Personal productivity management (tasks, lists, time tracking, memories)
+- Personal productivity management (tasks, lists, time tracking)
 - File operations and code management
-- Persistent conversational memory with context retrieval
+- Persistent conversational context with retrieval
 - Text-to-speech synthesis
 - Web search integration
 
@@ -19,7 +19,7 @@ Cato provides a unified terminal interface for:
 1. **Terminal-First**: All functionality accessible via keyboard in a command-line interface
 2. **Rich Output**: Markdown rendering, syntax highlighting, and formatted tables
 3. **Unified Experience**: Single interface for chat, productivity, and file operations
-4. **Persistent Memory**: Conversation and productivity data persisted across sessions
+4. **Persistent Storage**: Conversation and productivity data persisted across sessions
 5. **Extensible Commands**: Slash command system for explicit actions
 6. **Graceful Degradation**: Continue operation when individual components fail
 
@@ -39,11 +39,10 @@ Cato provides a unified terminal interface for:
 ### Input Processing Order
 User input is processed in the following priority order:
 
-1. **Memory prompts**: If awaiting yes/no response for memory storage suggestion
-2. **Slash commands**: Input starting with `/` routes to command parser
-3. **Productivity routing**: Input starting with `%` routes to productivity agent
-4. **File routing**: Input starting with `@` routes to file tools agent
-5. **Regular chat**: All other input sent to LLM with context retrieval
+1. **Slash commands**: Input starting with `/` routes to command parser
+2. **Productivity routing**: Input starting with `%` routes to productivity agent
+3. **File routing**: Input starting with `@` routes to file tools agent
+4. **Regular chat**: All other input sent to LLM with context retrieval
 
 ### Session State
 - **Session ID**: Unique UUID generated per application launch
@@ -60,7 +59,7 @@ This specification is divided into the following functional areas:
 |----------|-------------|
 | SPEC_CORE_CHAT.md | LLM integration, message processing, display |
 | SPEC_COMMAND_SYSTEM.md | Slash command framework and all commands |
-| SPEC_PRODUCTIVITY.md | Tasks, lists, timelog, memories |
+|| SPEC_PRODUCTIVITY.md | Tasks, lists, timelog |
 | SPEC_FILE_OPERATIONS.md | File commands, attach, export, aliases |
 | SPEC_VECTOR_STORE.md | Conversation storage, similarity search |
 | SPEC_TTS.md | Text-to-speech functionality |
@@ -109,7 +108,6 @@ Default: `🐱 > ` (configurable via `display.prompt_symbol`)
 - 🟡 In Progress  
 - ✅ Completed
 - 🗑️ Deleted
-- 🧠 Memory recall indicator
 - 💭 Context indicator
 - 🔊 TTS indicator
 
@@ -133,7 +131,7 @@ Default: `🐱 > ` (configurable via `display.prompt_symbol`)
 ## Error Handling Philosophy
 
 1. **Non-critical failures**: Log warning, continue with reduced functionality
-   - Vector store unavailable → chat continues without memory
+   - Vector store unavailable → chat continues without context retrieval
    - TTS playback fails → show error, continue chat
    - Web search fails → show error, allow retry
 

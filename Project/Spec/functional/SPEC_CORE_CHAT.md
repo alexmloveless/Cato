@@ -103,12 +103,10 @@ Before generating a response, the system:
    - Uses similarity threshold from config
    - Returns up to `context_results` exchanges
 
-3. **Injects context** into API request
-   - Memories always included if found
-   - Regular context included based on `context_mode`:
-     - `off`: No context injection (default)
-     - `on`: Full context with excerpts shown
-     - `summary`: Context injected but only count displayed
+3. **Injects context** into API request based on `context_mode`:
+   - `off`: No context injection (default)
+   - `on`: Full context with excerpts shown
+   - `summary`: Context injected but only count displayed
 
 ### Context Display Modes
 

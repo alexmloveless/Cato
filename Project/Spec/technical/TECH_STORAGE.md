@@ -1,7 +1,7 @@
 # Storage Technical Specification
 
 ## Overview
-Cato uses SQLite for structured data storage (tasks, lists, time logs, memories). The database provides persistent storage for productivity features with a simple data access layer.
+Cato uses SQLite for structured data storage (tasks, lists, time logs). The database provides persistent storage for productivity features with a simple data access layer.
 
 ## Database Location
 ```
@@ -80,24 +80,6 @@ CREATE INDEX IF NOT EXISTS idx_time_logs_start_time ON time_logs(start_time);
 CREATE INDEX IF NOT EXISTS idx_time_logs_category ON time_logs(category);
 ```
 
-### Memories Table
-```sql
-CREATE TABLE IF NOT EXISTS memories (
-    id TEXT PRIMARY KEY,
-    content TEXT NOT NULL,
-    category TEXT,
-    source TEXT,                             -- 'user', 'conversation', 'import'
-    importance INTEGER DEFAULT 1,            -- 1-5 scale
-    created_at TEXT NOT NULL,
-    last_accessed TEXT,
-    access_count INTEGER DEFAULT 0,
-    metadata TEXT
-);
-
-CREATE INDEX IF NOT EXISTS idx_memories_category ON memories(category);
-CREATE INDEX IF NOT EXISTS idx_memories_importance ON memories(importance);
-```
-
 ### Sessions Table
 ```sql
 CREATE TABLE IF NOT EXISTS sessions (
@@ -123,7 +105,6 @@ CREATE TABLE IF NOT EXISTS threads (
 ### Repository Protocol
 ```python
 from typing import Protocol, TypeVar, Generic
-from dataclasses import dataclass
 
 T = TypeVar("T")
 
@@ -153,9 +134,14 @@ class Repository(Protocol[T]):
 
 ### Task Repository
 ```python
-@dataclass
-class Task:
-    """Task entity."""
+from pydantic import BaseModel
+
+class Task(BaseModel):
+    """
+    Task entity.
+    
+    Uses Pydantic for validation as data crosses SQLite boundary.
+    """
     id: str
     title: str
     description: str | None
@@ -400,9 +386,15 @@ class Database:
 
 ### Migration Definition
 ```python
+from dataclasses import dataclass
+
 @dataclass
 class Migration:
-    """Database migration."""
+    """
+    Database migration.
+    
+    Note: Uses dataclass as it's internal configuration, not external data.
+    """
     name: str
     sql: str
     
@@ -478,25 +470,7 @@ MIGRATIONS = [
         """,
     ),
     Migration(
-        name="003_memories",
-        sql="""
-        CREATE TABLE IF NOT EXISTS memories (
-            id TEXT PRIMARY KEY,
-            content TEXT NOT NULL,
-            category TEXT,
-            source TEXT,
-            importance INTEGER DEFAULT 1,
-            created_at TEXT NOT NULL,
-            last_accessed TEXT,
-            access_count INTEGER DEFAULT 0,
-            metadata TEXT
-        );
-        
-        CREATE INDEX IF NOT EXISTS idx_memories_category ON memories(category);
-        """,
-    ),
-    Migration(
-        name="004_sessions",
+        name="003_sessions",
         sql="""
         CREATE TABLE IF NOT EXISTS sessions (
             id TEXT PRIMARY KEY,
@@ -535,7 +509,6 @@ class Storage:
         self.tasks = TaskRepository(db)
         self.lists = ListRepository(db)
         self.time_logs = TimeLogRepository(db)
-        self.memories = MemoryRepository(db)
         self.sessions = SessionRepository(db)
     
     async def connect(self) -> None:

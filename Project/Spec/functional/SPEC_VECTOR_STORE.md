@@ -2,7 +2,7 @@
 
 ## Overview
 
-The vector store provides persistent conversation memory using vector embeddings for semantic similarity search. It enables context retrieval from previous conversations and document storage for future reference.
+The vector store provides persistent conversation context using vector embeddings for semantic similarity search. It enables context retrieval from previous conversations and document storage for future reference.
 
 ## Critical Performance Requirements
 
@@ -278,8 +278,6 @@ vector_store:
   chat_window: 3
   context_results: 5
   search_context_window: 3
-  memory_threshold: 0.7
-  memory_results: 3
 ```
 
 ### Chunking Config
@@ -304,7 +302,7 @@ embedding:
 ### Graceful Degradation
 If vector store fails to initialize:
 - Log warning
-- Continue without memory features
+- Continue without context retrieval
 - Conversation still works
 
 ### Operation Failures
@@ -326,6 +324,5 @@ cato --no-vector-store
 
 When disabled:
 - No context retrieval
-- No memory features
 - No `/v*` commands available
 - `/continue` unavailable

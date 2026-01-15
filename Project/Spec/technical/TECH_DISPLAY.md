@@ -11,8 +11,13 @@ from typing import Protocol
 from dataclasses import dataclass
 
 @dataclass
-class Message:
-    """Display message."""
+class DisplayMessage:
+    """
+    Display message.
+    
+    Note: Uses dataclass as it's internal display data, not external.
+    Named DisplayMessage to avoid confusion with LLM Message model.
+    """
     role: Literal["user", "assistant", "system", "error", "info"]
     content: str
     timestamp: datetime | None = None
@@ -25,7 +30,7 @@ class Display(Protocol):
     Abstracts terminal output to enable pluggable frontends.
     """
     
-    def show_message(self, message: Message) -> None:
+    def show_message(self, message: DisplayMessage) -> None:
         """
         Display a message.
         
@@ -189,7 +194,7 @@ class RichDisplay:
         
         return themes["default"]
     
-    def show_message(self, message: Message) -> None:
+    def show_message(self, message: DisplayMessage) -> None:
         """Display a message with role-based styling."""
         prefix = self._get_prefix(message.role)
         style = message.role

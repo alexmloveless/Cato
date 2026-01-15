@@ -303,8 +303,6 @@ Display vector store statistics.
 /vstats
 ```
 
-### Memory Commands
-
 ### Productivity Commands
 
 See SPEC_PRODUCTIVITY.md for detailed productivity documentation.
@@ -383,7 +381,6 @@ Speak with custom instructions.
 | /continue | /cont |
 | /speak | /s |
 | /speaklike | /sl |
-| /remember | /rem, /r |
 | /st | /show-tasks, /tasks |
 | /list | /lists, /show-lists |
 | /timelog | /tl, /time |
