@@ -5,6 +5,9 @@ from cato.commands.executor import CommandExecutor
 from cato.commands.parser import parse_command_input
 from cato.commands.registry import CommandRegistry, command
 
+# Import command modules to trigger @command decorator registration
+import cato.commands.core  # noqa: F401
+
 __all__ = [
     "Command",
     "CommandContext",
