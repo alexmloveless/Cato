@@ -26,12 +26,12 @@ This file tracks implementation progress across agent sessions. **Agents MUST up
 
 ## Current Focus
 
-**Phase**: Phase 5 complete
-**Branch**: `feature/phase-05-commands`
-**Next Task**: Phase 6.1 - Conversation Management
+**Phase**: Phase 6 complete
+**Branch**: `feature/phase-06-services`
+**Next Task**: Phase 7.1 - Bootstrap Module
 **Blockers**: None
 
-**Last Updated**: 2026-01-15T21:50:00Z
+**Last Updated**: 2026-01-15T21:55:00Z
 
 ---
 
@@ -173,12 +173,13 @@ Status Legend: ⬜ Not Started | 🔄 In Progress | ✅ Complete | ⏸️ Blocke
 **Goal**: Chat service orchestrating LLM interactions.
 
 #### 6.1 Conversation Management
-- [ ] Create `cato/services/__init__.py`
-- [ ] Create `cato/services/README.md`
-- [ ] Create `cato/services/conversation.py`
+- [x] Create `cato/services/__init__.py`
+- [x] Create `cato/services/README.md`
+- [x] Create `cato/services/conversation.py`
+- [x] Create `cato/resources/system_prompt.txt`
 
 #### 6.2 Chat Service
-- [ ] Create `cato/services/chat.py`
+- [x] Create `cato/services/chat.py`
 
 ---
 
@@ -356,3 +357,4 @@ Record significant sessions here for continuity.
 | 2026-01-15 | Claude | Phase 4 complete: display layer with Rich output and prompt_toolkit input |
 | 2026-01-15 | Claude | Phase 5 complete: command framework with decorator registration |
 
+| 2026-01-15 | Claude | Phase 6 complete: core services with Conversation and ChatService |
