@@ -26,12 +26,12 @@ This file tracks implementation progress across agent sessions. **Agents MUST up
 
 ## Current Focus
 
-**Phase**: Phase 7 complete
-**Branch**: `feature/phase-07-bootstrap`
-**Next Task**: Phase 8.1 - Core Commands
+**Phase**: Phase 8 complete
+**Branch**: `feature/phase-08-core-commands`
+**Next Task**: Phase 9.1 - Vector Store Protocol
 **Blockers**: None
 
-**Last Updated**: 2026-01-15T22:00:00Z
+**Last Updated**: 2026-01-15T22:05:00Z
 
 ---
 
@@ -44,8 +44,8 @@ This file tracks implementation progress across agent sessions. **Agents MUST up
 | 3 | Provider Layer | ✅ Complete | `feature/phase-03-providers` |
 | 4 | Display Layer | ✅ Complete | `feature/phase-04-display` |
 | 5 | Command Framework | ✅ Complete | `feature/phase-05-commands` |
-| 6 | Core Services | ⬜ Not Started | `feature/phase-07-bootstrap` |
-| 7 | Bootstrap & REPL | ⬜ Not Started | `feature/phase-07-bootstrap` |
+| 6 | Core Services | ⬜ Not Started | `feature/phase-08-core-commands` |
+| 7 | Bootstrap & REPL | ⬜ Not Started | `feature/phase-08-core-commands` |
 | 8 | Core Commands (MVP) | ⬜ Not Started | `feature/phase-08-core-commands` |
 | 9 | Vector Store | ⬜ Not Started | `feature/phase-09-vector` |
 | 10 | Productivity System | ⬜ Not Started | `feature/phase-10-productivity` |
@@ -201,10 +201,10 @@ Status Legend: ⬜ Not Started | 🔄 In Progress | ✅ Complete | ⏸️ Blocke
 **Goal**: Essential commands for usable chat client.
 
 #### 8.1 Core Commands
-- [ ] Create `cato/commands/core.py` (/help, /exit, /clear, /config)
+- [x] Create `cato/commands/core.py` (/help, /exit, /clear, /config)
 
 #### 8.2 History Commands
-- [ ] Create `cato/commands/history.py`
+- [x] Create `cato/commands/history.py`
 
 #### 8.3 Context Commands
 - [ ] Create `cato/commands/context.py`
@@ -357,5 +357,6 @@ Record significant sessions here for continuity.
 | 2026-01-15 | Claude | Phase 4 complete: display layer with Rich output and prompt_toolkit input |
 | 2026-01-15 | Claude | Phase 5 complete: command framework with decorator registration |
 
-| 2026-01-15 | Claude | Phase 7 complete: core services with Conversation and ChatService |
-| 2026-01-15 | Claude | Phase 7 complete: bootstrap module, Application class, REPL loop |
+| 2026-01-15 | Claude | Phase 8 complete: core services with Conversation and ChatService |
+| 2026-01-15 | Claude | Phase 8 complete: bootstrap module, Application class, REPL loop |
+| 2026-01-15 | Claude | Phase 8 complete: core commands (/help, /exit, /clear, /config, /info) |
