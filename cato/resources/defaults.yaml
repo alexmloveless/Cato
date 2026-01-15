@@ -1,0 +1,235 @@
+# Cato Default Configuration
+# This file contains all configurable options with their default values and documentation.
+# User config files (~/.config/cato/config.yaml) overlay these defaults - only specify what you want to change.
+
+# Profile name (optional, for user reference)
+profile_name: null
+
+# Enable comprehensive debug mode
+debug: false
+
+# LLM Provider Configuration
+llm:
+  # Provider selection: openai, anthropic, google, ollama
+  provider: "openai"
+  
+  # Model identifier (provider-specific)
+  model: "gpt-4o-mini"
+  
+  # Response randomness (0.0 = deterministic, 2.0 = very random)
+  temperature: 1.0
+  
+  # Maximum tokens in response
+  max_tokens: 4000
+  
+  # Request timeout in seconds
+  timeout_seconds: 60
+  
+  # Additional system prompt files to append (list of paths)
+  system_prompt_files: []
+  
+  # Alternative base prompt file (null = use package default)
+  base_prompt_file: null
+  
+  # If true and base_prompt_file is set, replace default entirely; if false, append
+  override_base_prompt: false
+  
+  # Provider-specific settings (API keys resolved via environment variables)
+  openai:
+    api_key: "${OPENAI_API_KEY}"
+  
+  anthropic:
+    api_key: "${ANTHROPIC_API_KEY}"
+  
+  google:
+    api_key: "${GOOGLE_API_KEY}"
+  
+  ollama:
+    base_url: "http://localhost:11434"
+
+# Vector Store Configuration
+vector_store:
+  # Enable vector store for conversation memory
+  enabled: true
+  
+  # Backend: chromadb (only option currently)
+  backend: "chromadb"
+  
+  # Storage directory
+  path: "~/.local/share/cato/vectordb"
+  
+  # Collection name
+  collection_name: "cato_memory"
+  
+  # Number of similar exchanges to retrieve for context
+  context_results: 5
+  
+  # Recent exchanges used to build search query
+  search_context_window: 3
+  
+  # Minimum similarity score (0.0-1.0)
+  similarity_threshold: 0.65
+  
+  # Enable dynamic similarity thresholding
+  dynamic_threshold: true
+  
+  # Retrieval strategy
+  retrieval_strategy: "default"
+  
+  # Max recent exchanges in memory (-1 = all)
+  chat_window: -1
+  
+  # Embedding provider: openai, ollama
+  embedding_provider: "openai"
+  
+  # Embedding model
+  embedding_model: "text-embedding-3-small"
+  
+  # Vector dimensions
+  embedding_dimensions: 1536
+  
+  # Chunking strategy: truncate, fixed_size, semantic, hybrid
+  chunking_strategy: "semantic"
+  
+  # Target chunk size in characters
+  chunk_size: 1000
+  
+  # Overlap between chunks in characters
+  chunk_overlap: 100
+  
+  # Maximum chunk size
+  max_chunk_size: 1500
+  
+  # Avoid splitting sentences
+  preserve_sentence_boundaries: true
+
+# SQLite Storage Configuration
+storage:
+  # Database path
+  database_path: "~/.local/share/cato/cato.db"
+  
+  # Enable database backups
+  backup_enabled: false
+  
+  # Backup frequency in hours
+  backup_frequency_hours: 24
+
+# Display Configuration
+display:
+  # Theme name (default, gruvbox-dark, or custom)
+  theme: "default"
+  
+  # Enable markdown rendering
+  markdown_enabled: true
+  
+  # Syntax highlighting theme for code blocks
+  code_theme: "monokai"
+  
+  # Max render width (null = terminal width)
+  max_width: null
+  
+  # Show timestamps on messages
+  timestamps: false
+  
+  # Spinner style
+  spinner_style: "dots"
+  
+  # Input prompt symbol (supports Unicode/emoji)
+  prompt_symbol: "🐱 > "
+  
+  # Terminal width for formatting (characters)
+  line_width: 80
+  
+  # Character for exchange delimiter lines
+  exchange_delimiter: "─"
+  
+  # Delimiter line length
+  exchange_delimiter_length: 60
+  
+  # Rich style overrides (keyed by: user, assistant, system, error, warning, info, code)
+  style_overrides: {}
+  
+  # prompt_toolkit prompt style (null = use theme default)
+  prompt_style: null
+  
+  # prompt_toolkit input style (null = use theme default)
+  input_style: null
+
+# Logging Configuration
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: "WARNING"
+  
+  # Log file path (null = no file logging)
+  file_path: "~/.local/share/cato/cato.log"
+  
+  # Log message format
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # Max file size in MB
+  max_file_size_mb: 10
+  
+  # Number of rotated backups
+  backup_count: 3
+
+# Command System Configuration
+commands:
+  # Command prefix (typically /)
+  prefix: "/"
+  
+  # Command history file
+  history_file: "~/.local/share/cato/command_history"
+
+# Path Configuration
+paths:
+  # Application data directory
+  data_dir: "~/.local/share/cato"
+  
+  # Configuration directory
+  config_dir: "~/.config/cato"
+  
+  # Cache directory
+  cache_dir: "~/.cache/cato"
+
+# Text-to-Speech Configuration
+tts:
+  # Enable TTS functionality
+  enabled: true
+  
+  # Default voice
+  voice: "nova"
+  
+  # Default TTS model
+  model: "tts-1"
+  
+  # Audio file directory
+  audio_dir: "/tmp"
+
+# Web Search Configuration
+web_search:
+  # Enable web search functionality
+  enabled: true
+  
+  # Default search engine
+  default_engine: "duckduckgo"
+  
+  # Max words per search result page
+  content_threshold: 500
+  
+  # Max results to process
+  max_results: 3
+  
+  # Request timeout in seconds
+  timeout: 10
+  
+  # Search engine URLs
+  engines:
+    duckduckgo: "https://duckduckgo.com/html/?q={query}"
+    google: "https://www.google.com/search?q={query}"
+    bing: "https://www.bing.com/search?q={query}"
+
+# Location Aliases (for file commands)
+# Example:
+#   docs: ~/Documents
+#   projects: ~/Code/projects
+locations: {}
