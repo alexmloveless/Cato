@@ -330,7 +330,7 @@ class TextChunker:
     def __init__(
         self,
         chunk_size: int = 1000,
-        chunk_overlap: int = 200,
+        chunk_overlap: int = 100,
         separators: list[str] | None = None,
     ) -> None:
         self._chunk_size = chunk_size
@@ -661,7 +661,7 @@ vector_store:
   # Retrieval settings
   context_results: 5
   search_context_window: 3
-  similarity_threshold: 0.7
+  similarity_threshold: 0.65
   dynamic_threshold: true
   retrieval_strategy: "default"
 
@@ -673,7 +673,7 @@ vector_store:
   # Chunking settings
   chunking_strategy: "semantic"
   chunk_size: 1000
-  chunk_overlap: 200
+  chunk_overlap: 100
   max_chunk_size: 1500
   preserve_sentence_boundaries: true
 ```

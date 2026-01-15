@@ -78,6 +78,14 @@ This document is the single source of truth for configuration keys, file locatio
 - `format`
 - `max_file_size_mb`
 - `backup_count`
+### Commands (`commands`)
+- `prefix`
+- `history_file`
+
+### Paths (`paths`)
+- `data_dir`
+- `config_dir`
+- `cache_dir`
 
 ### TTS (`tts`)
 - `enabled`

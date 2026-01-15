@@ -41,10 +41,11 @@ The CLI is part of the **Presentation** layer. It must:
 | `--max-tokens` | `llm.max_tokens` |
 | `--timeout-seconds` | `llm.timeout_seconds` |
 | `--no-markdown` | `display.markdown_enabled=false` |
-| `--no-rich` | `display.no_rich=true` |
-| `--no-color` | `display.no_color=true` |
+| `--no-rich` | runtime display flag (force plain text output) |
+| `--no-color` | runtime display flag (disable ANSI colors) |
 
 Overrides must be applied **only** when the corresponding flag is provided; no implicit defaults beyond config.
+`--no-rich` and `--no-color` are CLI-only overrides and do not persist in config.
 
 ## Mode Selection
 

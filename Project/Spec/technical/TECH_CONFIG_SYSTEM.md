@@ -9,7 +9,7 @@ defaults.yaml          # Shipped with Cato, never modified by user
     ↓
 user_config.yaml       # User overrides, sparse (only differences)
     ↓
-environment vars       # CATO_* env vars for secrets/runtime overrides
+environment vars       # CATO_* overrides + provider API keys (OPENAI_API_KEY, etc.)
     ↓
 CLI arguments          # Highest precedence, session-specific
 ```
@@ -71,9 +71,9 @@ def load_config(user_path: Path | None = None) -> CatoConfig:
 # defaults.yaml
 llm:
   provider: "openai"
-  model: "gpt-4"
+  model: "gpt-4o-mini"
   temperature: 1.0
-  max_tokens: 4096
+  max_tokens: 4000
 
 # user_config.yaml
 llm:
@@ -84,7 +84,7 @@ llm:
   provider: "openai"        # from defaults
   model: "gpt-4-turbo"      # from user (override)
   temperature: 1.0          # from defaults
-  max_tokens: 4096          # from defaults
+  max_tokens: 4000          # from defaults
 ```
 
 ## Pydantic Schema
@@ -94,8 +94,10 @@ llm:
 class CatoConfig(BaseModel):
     """Root configuration model."""
     
-    model_config = ConfigDict(extra="forbid")  # Warn on unknown keys
+    model_config = ConfigDict(extra="ignore")  # Warn on unknown keys separately
     
+    profile_name: str | None = None
+    debug: bool = False
     llm: LLMConfig
     vector_store: VectorStoreConfig
     storage: StorageConfig
@@ -103,6 +105,9 @@ class CatoConfig(BaseModel):
     commands: CommandConfig
     logging: LoggingConfig
     paths: PathConfig
+    tts: TTSConfig
+    web_search: WebSearchConfig
+    locations: dict[str, str] = Field(default_factory=dict)
 ```
 
 ### LLM Configuration
@@ -115,6 +120,9 @@ class LLMConfig(BaseModel):
     temperature: float = Field(ge=0.0, le=2.0)
     max_tokens: int = Field(ge=1, le=200000)
     timeout_seconds: int = Field(ge=1, le=300)
+    system_prompt_files: list[Path] | None = None
+    base_prompt_file: Path | None = None
+    override_base_prompt: bool = False
     
     # Provider-specific settings
     openai: OpenAIConfig | None = None
@@ -176,6 +184,10 @@ class DisplayConfig(BaseModel):
     max_width: int | None = Field(ge=40, default=None)
     timestamps: bool
     spinner_style: str
+    prompt_symbol: str
+    line_width: int
+    exchange_delimiter: str
+    exchange_delimiter_length: int
 ```
 
 ### Logging Configuration
@@ -188,6 +200,49 @@ class LoggingConfig(BaseModel):
     format: str
     max_file_size_mb: int = Field(ge=1)
     backup_count: int = Field(ge=0)
+```
+
+### Command Configuration
+```python
+class CommandConfig(BaseModel):
+    """Command system configuration."""
+    
+    prefix: str
+    history_file: Path
+```
+
+### Path Configuration
+```python
+class PathConfig(BaseModel):
+    """Base application paths."""
+    
+    data_dir: Path
+    config_dir: Path
+    cache_dir: Path
+```
+
+### TTS Configuration
+```python
+class TTSConfig(BaseModel):
+    """Text-to-speech configuration."""
+    
+    enabled: bool
+    voice: str
+    model: str
+    audio_dir: Path
+```
+
+### Web Search Configuration
+```python
+class WebSearchConfig(BaseModel):
+    """Web search configuration."""
+    
+    enabled: bool
+    default_engine: str
+    content_threshold: int = Field(ge=1)
+    max_results: int = Field(ge=1, le=10)
+    timeout: int = Field(ge=1)
+    engines: dict[str, str]
 ```
 
 ## Environment Variable Overrides
@@ -206,9 +261,10 @@ CATO_LLM_MODEL="claude-3-opus"
 # Override logging level
 CATO_LOGGING_LEVEL="DEBUG"
 
-# API keys (primary use case)
-CATO_OPENAI_API_KEY="sk-..."
-CATO_ANTHROPIC_API_KEY="sk-ant-..."
+# Provider API keys (used via ${OPENAI_API_KEY} etc. in config)
+OPENAI_API_KEY="sk-..."
+ANTHROPIC_API_KEY="sk-ant-..."
+GOOGLE_API_KEY="..."
 ```
 
 ### Implementation
@@ -275,6 +331,8 @@ class CatoConfig(BaseModel):
         str_strip_whitespace=True,
     )
     
+    profile_name: str | None = None
+    debug: bool = False
     llm: LLMConfig
     vector_store: VectorStoreConfig
     storage: StorageConfig
@@ -282,6 +340,9 @@ class CatoConfig(BaseModel):
     commands: CommandConfig
     logging: LoggingConfig
     paths: PathConfig
+    tts: TTSConfig
+    web_search: WebSearchConfig
+    locations: dict[str, str] = Field(default_factory=dict)
 ```
 
 ### Field-Level Validation
@@ -398,12 +459,29 @@ class LLMConfig(BaseModel):
 ```yaml
 # defaults.yaml - Shipped with Cato, do not modify
 
+profile_name: null
+debug: false
+
 llm:
   provider: "openai"
-  model: "gpt-4"
+  model: "gpt-4o-mini"
   temperature: 1.0
-  max_tokens: 4096
+  max_tokens: 4000
   timeout_seconds: 60
+  system_prompt_files: []
+  base_prompt_file: null
+  override_base_prompt: false
+
+  # Provider-specific settings
+  openai:
+    api_key: "${OPENAI_API_KEY}"
+    organization: null
+  anthropic:
+    api_key: "${ANTHROPIC_API_KEY}"
+  google:
+    api_key: "${GOOGLE_API_KEY}"
+  ollama:
+    base_url: "http://localhost:11434"
 
 vector_store:
   enabled: true
@@ -421,7 +499,7 @@ vector_store:
   embedding_dimensions: 1536
   chunking_strategy: "semantic"
   chunk_size: 1000
-  chunk_overlap: 200
+  chunk_overlap: 100
   max_chunk_size: 1500
   preserve_sentence_boundaries: true
 
@@ -437,6 +515,10 @@ display:
   max_width: null
   timestamps: false
   spinner_style: "dots"
+  prompt_symbol: "🐱 > "
+  line_width: 80
+  exchange_delimiter: "─"
+  exchange_delimiter_length: 60
 
 commands:
   prefix: "/"
@@ -453,6 +535,25 @@ paths:
   data_dir: "~/.local/share/cato"
   config_dir: "~/.config/cato"
   cache_dir: "~/.cache/cato"
+
+tts:
+  enabled: true
+  voice: "nova"
+  model: "tts-1"
+  audio_dir: "/tmp"
+
+web_search:
+  enabled: true
+  default_engine: "duckduckgo"
+  content_threshold: 500
+  max_results: 3
+  timeout: 10
+  engines:
+    duckduckgo: "https://duckduckgo.com/html/?q={query}"
+    google: "https://www.google.com/search?q={query}"
+    bing: "https://www.bing.com/search?q={query}"
+
+locations: {}
 ```
 
 ## User Configuration Example

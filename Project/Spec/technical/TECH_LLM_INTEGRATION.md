@@ -510,9 +510,9 @@ async def complete_with_retry(
 ```yaml
 llm:
   provider: "openai"  # Which provider to use
-  model: "gpt-4"
+  model: "gpt-4o-mini"
   temperature: 1.0
-  max_tokens: 4096
+  max_tokens: 4000
   timeout_seconds: 60
   
   # Provider-specific settings (only relevant one is used)

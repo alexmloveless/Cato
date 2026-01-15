@@ -28,7 +28,7 @@ See CONFIG_REFERENCE.md for canonical config keys.
 |-----------|---------|-------|-------------|
 | model | gpt-4o-mini | Provider-specific | LLM model identifier |
 | temperature | 1.0 | 0.0-2.0 | Response randomness |
-| max_tokens | 10000 | >0 | Maximum response tokens |
+| max_tokens | 4000 | >0 | Maximum response tokens |
 
 ## Conversation Management
 
@@ -129,7 +129,7 @@ While waiting for LLM response:
 ```
 
 ### Timeout Handling
-- Default timeout: 120 seconds
+- Timeout: `llm.timeout_seconds` (default 60 seconds)
 - On timeout: Show error message, return to prompt
 - On Ctrl+C: Cancel request, return to prompt
 
@@ -181,8 +181,6 @@ def example():
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| user_label | "User" | Label for user messages |
-| assistant_label | "Assistant" | Label for assistant messages |
 | line_width | 80 | Terminal width for formatting |
 | exchange_delimiter | "─" | Character for visual separation |
 | exchange_delimiter_length | 60 | Length of delimiter line |

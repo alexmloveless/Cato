@@ -44,11 +44,11 @@ class VectorStore:
 
 ### Waiting Indicator
 - Display spinner while waiting for LLM response
-- Spinner icon configurable via `display.spinner_icon`
+- Spinner style configurable via `display.spinner_style`
 - Show cancellation hint (Ctrl+C)
 
 ### Timeout Handling
-- Default API timeout: 120 seconds
+- API timeout configured via `llm.timeout_seconds` (default 60 seconds)
 - Graceful cancellation on Ctrl+C
 - Clear feedback on timeout
 

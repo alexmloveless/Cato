@@ -66,8 +66,9 @@ section_2:
 | model | string | gpt-4o-mini | - | LLM model identifier |
 | temperature | float | 1.0 | 0.0-2.0 | Response randomness |
 | max_tokens | int | 4000 | >0 | Maximum response tokens |
+| timeout_seconds | int | 60 | 1-300 | Request timeout (seconds) |
 | system_prompt_files | list | [] | - | Additional prompt files |
-| base_prompt_file | string | (package default) | - | Alternative prompt file path |
+| base_prompt_file | string | null | - | Alternative prompt file path (null uses package default) |
 | override_base_prompt | bool | false | - | Only has an effect if base_prompt_file is populated. If true will override the base in its entirety. If false, it will append. |
 
 ### Vector Store Configuration (`vector_store`)
@@ -108,15 +109,16 @@ See CONFIG_REFERENCE.md for canonical structure.
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| user_label | string | User | Label for user messages |
-| assistant_label | string | Assistant | Label for assistant messages |
-| no_rich | bool | false | Disable rich text formatting |
-| no_color | bool | false | Disable ANSI colors |
-| line_width | int | 80 | Terminal width (chars) |
+| theme | string | default | Display theme name |
+| markdown_enabled | bool | true | Enable markdown rendering |
+| code_theme | string | monokai | Syntax highlighting theme |
+| max_width | int | null | Max render width (null = terminal width) |
+| timestamps | bool | false | Show timestamps on messages |
+| spinner_style | string | dots | Spinner style name |
+| prompt_symbol | string | 🐱 >  | Input prompt (supports Unicode/emoji) |
+| line_width | int | 80 | Terminal width for response formatting (chars) |
 | exchange_delimiter | string | ─ | Character for separation |
 | exchange_delimiter_length | int | 60 | Delimiter line length |
-| prompt_symbol | string | 🐱 >  | Input prompt (supports Unicode/emoji) |
-| spinner_icon | string | ⠋ | Waiting indicator icon (spinner character) |
 
 
 ### Logging Configuration (`logging`)
@@ -124,8 +126,25 @@ See CONFIG_REFERENCE.md for canonical structure.
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | level | string | WARNING | DEBUG, INFO, WARNING, ERROR |
-| format | string | (standard format) | Log message format |
-| show_context | bool | false | Show context in INFO logs |
+| file_path | string | ~/.local/share/cato/cato.log | Log file path (null disables file logging) |
+| format | string | %(asctime)s - %(name)s - %(levelname)s - %(message)s | Log message format |
+| max_file_size_mb | int | 10 | Max size per log file |
+| backup_count | int | 3 | Number of rotated log files to keep |
+
+### Command Configuration (`commands`)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| prefix | string | / | Slash command prefix |
+| history_file | string | ~/.local/share/cato/command_history | Prompt history file |
+
+### Path Configuration (`paths`)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| data_dir | string | ~/.local/share/cato | Data directory |
+| config_dir | string | ~/.config/cato | Config directory |
+| cache_dir | string | ~/.cache/cato | Cache directory |
 
 ### TTS Configuration (`tts`)
 
@@ -179,23 +198,24 @@ CLI options, modes (including headless), and outputs are specified in `SPEC_COMM
 ## Validation
 
 ### On Startup
-1. Load configuration file (if found)
+1. Load defaults and user config (if found)
 2. Parse YAML structure
-3. Validate using Pydantic models:
+3. Deep-merge user config over defaults
+4. Apply environment variable overrides
+5. Validate using Pydantic models:
    - Type checking
    - Range validation
    - Enum validation
-4. Validate location aliases (paths exist)
-5. Apply environment variable overrides
-6. Apply CLI argument overrides
-7. Report validation errors
+6. Validate location aliases (paths exist)
+7. Apply CLI argument overrides (highest precedence) and validate CLI values
+8. Report validation errors
 
 If there is an appropriate existing parser or validator in pydantic (e.g. for file location validation) the you should use that in preference to creating a native one.
 
 ### Error Handling
 - Invalid YAML: Show parse error, exit
-- Missing required key: Use default
-- Invalid value: Warn the user and fall back to default
+- Missing required key: Show error, exit
+- Invalid value: Show error, exit
 - Invalid location alias: Log warning, continue
 
 

@@ -206,13 +206,13 @@ from cato.core.exceptions import (
 - Invalid YAML syntax: Log error, exit
 - Missing config file: Use defaults, log info
 - Unrecognised config key: Warn user, ignore key, continue
-- Invalid value type: Warn user, use default for that key
-- Value out of range: Warn user, use default
+- Invalid value type: Log error, exit
+- Value out of range: Log error, exit
 
 ### Example
 ```python
 # On startup with invalid config value
-"⚠️ Config warning: 'temperature' must be 0.0-2.0, got 5.0. Using default: 1.0"
+"❌ Config error: 'temperature' must be 0.0-2.0, got 5.0. Fix the config and retry."
 ```
 
 ## Graceful Degradation

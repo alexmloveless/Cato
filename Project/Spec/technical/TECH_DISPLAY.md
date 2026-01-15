@@ -374,7 +374,7 @@ class InputHandler:
             "": "",
         })
     
-    async def get_input(self, prompt: str = "> ") -> str | None:
+    async def get_input(self, prompt: str | None = None) -> str | None:
         """
         Get user input.
         
@@ -389,11 +389,11 @@ class InputHandler:
             User input or None if cancelled.
         """
         try:
-            return await self._session.prompt_async(prompt)
+            return await self._session.prompt_async(prompt or self._config.prompt_symbol)
         except (EOFError, KeyboardInterrupt):
             return None
     
-    async def get_multiline_input(self, prompt: str = ">>> ") -> str | None:
+    async def get_multiline_input(self, prompt: str | None = None) -> str | None:
         """
         Get multiline input (ends with blank line).
         
@@ -412,7 +412,8 @@ class InputHandler:
         
         try:
             while True:
-                p = prompt if not lines else continuation
+                base_prompt = prompt or self._config.prompt_symbol
+                p = base_prompt if not lines else continuation
                 line = await self._session.prompt_async(p)
                 
                 if not line and lines:
@@ -435,6 +436,10 @@ display:
   max_width: null       # null = terminal width
   timestamps: false
   spinner_style: "dots"
+  prompt_symbol: "🐱 > "
+  line_width: 80
+  exchange_delimiter: "─"
+  exchange_delimiter_length: 60
 ```
 
 ### Custom Theme File
@@ -622,6 +627,10 @@ class DisplayConfig(BaseModel):
     max_width: int | None = Field(ge=40, default=None)
     timestamps: bool = False
     spinner_style: str = "dots"  # dots, line, moon, etc.
+    prompt_symbol: str = "🐱 > "
+    line_width: int = 80
+    exchange_delimiter: str = "─"
+    exchange_delimiter_length: int = 60
 ```
 
 ## Integration
