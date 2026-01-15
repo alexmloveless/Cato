@@ -214,7 +214,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv pip install -e ".[dev]"
+          uv sync --frozen --group dev
       
       - name: Run linting
         run: ruff check cato/
@@ -240,7 +240,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv pip install -e ".[dev]"
+          uv sync --frozen --group dev
       - name: Run E2E tests
         run: pytest tests/e2e --tb=short
 ```
@@ -377,7 +377,7 @@ dependencies = [
     "click>=8.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=4.0",
@@ -427,53 +427,56 @@ testpaths = ["tests"]
 git clone https://github.com/user/cato.git
 cd cato
 
-# Create conda environment
-conda create -n cato python=3.12
-conda activate cato
-
 # Install uv (if not already installed)
 pip install uv
+# Sync project environment (creates .venv and uv.lock on first sync)
+uv sync
 
-# Install Cato in editable mode with dev dependencies
-uv pip install -e ".[dev]"
+# Include dev dependency group (if defined)
+uv sync --group dev
 
 # Install pre-commit hooks (optional)
-pre-commit install
+uv run pre-commit install
 ```
 
 ### Daily Workflow
 ```bash
-# Activate environment
-conda activate cato
-
-# Sync dependencies (if pyproject.toml changed)
-uv pip install -e ".[dev]"
+# Sync environment (if pyproject.toml or uv.lock changed)
+uv sync
+# If you use the dev dependency group:
+uv sync --group dev
 
 # Run tests
-pytest
+uv run pytest
 
 # Run linting and type checking
-ruff check cato/
-mypy cato/
+uv run ruff check cato/
+uv run mypy cato/
 ```
 
 ### Adding Dependencies
 ```bash
-# Add to pyproject.toml manually, then:
-uv pip install -e ".[dev]"
+# Add a runtime dependency
+uv add some-package
 
-# Or install directly (for experimentation)
-uv pip install some-package
+# Add a dev-only dependency (if using dependency groups)
+uv add --group dev some-dev-tool
+
+# Remove a dependency
+uv remove some-package
+
+# Upgrade a specific package in the lockfile
+uv lock --upgrade-package some-package
 ```
 
-### Lockfile (Optional)
-For reproducible builds, generate a lockfile:
+### Lockfile (uv.lock)
+For reproducible builds, generate/update the lockfile and sync from it:
 ```bash
-# Generate lockfile from pyproject.toml
-uv pip compile pyproject.toml -o requirements.lock
+# Generate or update lockfile
+uv lock
 
-# Install from lockfile
-uv pip sync requirements.lock
+# Install exactly from lockfile (no updates)
+uv sync --frozen
 ```
 
 ### Running Locally

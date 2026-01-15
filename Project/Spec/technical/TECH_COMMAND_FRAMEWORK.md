@@ -473,6 +473,7 @@ class HistoryCommand:
 )
 class HelpCommand:
     """Display help information."""
+    # Help content structure and lookup are defined in TECH_HELP_SYSTEM.md.
     
     # Subcommand handlers
     _TOPICS = {

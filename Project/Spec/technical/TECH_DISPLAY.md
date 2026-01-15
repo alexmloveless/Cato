@@ -184,15 +184,24 @@ class RichDisplay:
             }),
         }
         
+        theme = themes.get("default")
         if theme_name in themes:
-            return themes[theme_name]
+            theme = themes[theme_name]
         
         # Try to load custom theme from file
         custom_path = Path(f"~/.config/cato/themes/{theme_name}.yaml").expanduser()
         if custom_path.exists():
-            return self._load_custom_theme(custom_path)
+            theme = self._load_custom_theme(custom_path)
         
-        return themes["default"]
+        return self._apply_style_overrides(theme, self._config.style_overrides)
+
+    def _apply_style_overrides(self, theme: Theme, overrides: dict[str, str]) -> Theme:
+        """Apply style overrides to a base theme."""
+        if not overrides:
+            return theme
+        merged = dict(theme.styles)
+        merged.update(overrides)
+        return Theme(merged)
     
     def show_message(self, message: DisplayMessage) -> None:
         """Display a message with role-based styling."""
@@ -364,6 +373,11 @@ class InputHandler:
     
     def _get_style(self) -> Style:
         """Get prompt style based on theme."""
+        if self._config.prompt_style or self._config.input_style:
+            return Style.from_dict({
+                "prompt": self._config.prompt_style or "cyan bold",
+                "": self._config.input_style or "",
+            })
         if self._config.theme == "gruvbox-dark":
             return Style.from_dict({
                 "prompt": "#83a598 bold",
@@ -440,7 +454,14 @@ display:
   line_width: 80
   exchange_delimiter: "─"
   exchange_delimiter_length: 60
+  style_overrides:
+    assistant: "bold #b8bb26"
+    system: "#928374"
+  prompt_style: "#83a598 bold"
+  input_style: "#ebdbb2"
 ```
+
+`style_overrides` is applied after the base theme (built-in or custom theme file). Keys should match the display role styles used by Rich (`user`, `assistant`, `system`, `error`, `warning`, `info`, `code`).
 
 ### Custom Theme File
 ```yaml
@@ -631,6 +652,9 @@ class DisplayConfig(BaseModel):
     line_width: int = 80
     exchange_delimiter: str = "─"
     exchange_delimiter_length: int = 60
+    style_overrides: dict[str, str] = Field(default_factory=dict)
+    prompt_style: str | None = None
+    input_style: str | None = None
 ```
 
 ## Integration

@@ -71,6 +71,9 @@ This document is the single source of truth for configuration keys, file locatio
 - `line_width`
 - `exchange_delimiter`
 - `exchange_delimiter_length`
+- `style_overrides`
+- `prompt_style`
+- `input_style`
 
 ### Logging (`logging`)
 - `level` (`DEBUG | INFO | WARNING | ERROR`)

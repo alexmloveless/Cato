@@ -188,6 +188,9 @@ class DisplayConfig(BaseModel):
     line_width: int
     exchange_delimiter: str
     exchange_delimiter_length: int
+    style_overrides: dict[str, str]
+    prompt_style: str | None
+    input_style: str | None
 ```
 
 ### Logging Configuration
@@ -519,6 +522,9 @@ display:
   line_width: 80
   exchange_delimiter: "─"
   exchange_delimiter_length: 60
+  style_overrides: {}
+  prompt_style: null
+  input_style: null
 
 commands:
   prefix: "/"

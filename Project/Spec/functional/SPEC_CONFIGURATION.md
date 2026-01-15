@@ -119,6 +119,9 @@ See CONFIG_REFERENCE.md for canonical structure.
 | line_width | int | 80 | Terminal width for response formatting (chars) |
 | exchange_delimiter | string | ─ | Character for separation |
 | exchange_delimiter_length | int | 60 | Delimiter line length |
+| style_overrides | dict | {} | Rich style overrides keyed by role (user, assistant, system, error, warning, info, code) |
+| prompt_style | string | null | prompt_toolkit style for the prompt (null uses theme/default) |
+| input_style | string | null | prompt_toolkit style for input text (null uses theme/default) |
 
 
 ### Logging Configuration (`logging`)

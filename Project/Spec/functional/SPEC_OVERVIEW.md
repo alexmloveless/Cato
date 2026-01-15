@@ -57,6 +57,7 @@ This specification is divided into the following functional areas:
 |----------|-------------|
 | SPEC_CORE_CHAT.md | LLM integration, message processing, display |
 | SPEC_COMMAND_SYSTEM.md | Slash command framework and all commands |
+| SPEC_HELP_SYSTEM.md | Help system behavior and navigation |
 | SPEC_PRODUCTIVITY.md | Tasks, lists |
 | SPEC_FILE_OPERATIONS.md | File commands, attach, export, aliases |
 | SPEC_VECTOR_STORE.md | Conversation storage, similarity search |

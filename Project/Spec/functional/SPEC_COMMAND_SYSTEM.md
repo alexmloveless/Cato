@@ -43,6 +43,7 @@ Display help information.
 /help config             # Show configuration help
 /help model "question"   # Ask the model about Cato (see below)
 ```
+For full help system behavior, navigation rules, and documentation requirements, see `SPEC_HELP_SYSTEM.md`.
 
 ##### /help model
 Ask the model for help with Cato functionality.
