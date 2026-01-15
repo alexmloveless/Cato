@@ -6,6 +6,7 @@ components based on configuration, implementing dependency injection throughout.
 """
 
 import asyncio
+import os
 from pathlib import Path
 
 import cato.commands  # Import to register commands
@@ -18,8 +19,94 @@ from cato.display.input import InputHandler
 from cato.providers.llm.factory import create_provider
 from cato.services.chat import ChatService
 from cato.storage.service import create_storage
+from cato.storage.embedding.openai import OpenAIEmbeddingProvider
+from cato.storage.embedding.ollama import OllamaEmbeddingProvider
+from cato.storage.vector.chromadb import ChromaVectorStore
+from cato.storage.vector.base import VectorStore
 
 logger = get_logger(__name__)
+
+
+def create_embedding_provider(config: CatoConfig):
+    """
+    Create embedding provider based on configuration.
+    
+    Parameters
+    ----------
+    config : CatoConfig
+        Application configuration.
+    
+    Returns
+    -------
+    EmbeddingProvider
+        Configured embedding provider.
+    
+    Raises
+    ------
+    ConfigurationError
+        If embedding provider configuration is invalid.
+    """
+    provider_name = config.vector_store.embedding_provider
+    
+    if provider_name == "openai":
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise ConfigurationError(
+                "OPENAI_API_KEY environment variable required for OpenAI embeddings"
+            )
+        return OpenAIEmbeddingProvider(
+            api_key=api_key,
+            model=config.vector_store.embedding_model,
+        )
+    elif provider_name == "ollama":
+        return OllamaEmbeddingProvider(
+            model=config.vector_store.embedding_model,
+        )
+    else:
+        raise ConfigurationError(f"Unknown embedding provider: {provider_name}")
+
+
+def create_vector_store(config: CatoConfig) -> VectorStore | None:
+    """
+    Create vector store if enabled.
+    
+    Parameters
+    ----------
+    config : CatoConfig
+        Application configuration.
+    
+    Returns
+    -------
+    VectorStore | None
+        Configured vector store or None if disabled.
+    """
+    if not config.vector_store.enabled:
+        logger.info("Vector store disabled in configuration")
+        return None
+    
+    try:
+        # Expand path
+        path = Path(config.vector_store.path).expanduser()
+        path.mkdir(parents=True, exist_ok=True)
+        
+        # Create embedding provider
+        embedding_provider = create_embedding_provider(config)
+        
+        # Create vector store
+        store = ChromaVectorStore(
+            path=str(path),
+            collection_name=config.vector_store.collection_name,
+            embedding_provider=embedding_provider,
+        )
+        
+        logger.info(
+            f"Vector store initialized: {path}, "
+            f"collection={config.vector_store.collection_name}"
+        )
+        return store
+    except Exception as e:
+        logger.warning(f"Failed to initialize vector store: {e}")
+        return None  # Continue without vector store
 
 
 def create_application(config_path: Path | None = None) -> "Application":
@@ -99,11 +186,16 @@ def _create_application_with_config(config: CatoConfig) -> "Application":
     logger.debug(f"Creating storage service at {config.storage.database_path}")
     storage = asyncio.run(create_storage(config))
 
+    # Create vector store (if enabled)
+    logger.debug("Creating vector store")
+    vector_store = create_vector_store(config)
+
     # Create chat service
     logger.debug("Creating chat service")
     chat_service = ChatService(
         provider=llm_provider,
         config=config,
+        vector_store=vector_store,
     )
 
     # Create display components
@@ -122,6 +214,7 @@ def _create_application_with_config(config: CatoConfig) -> "Application":
         config=config,
         chat_service=chat_service,
         storage=storage,
+        vector_store=vector_store,
         display=display,
         input_handler=input_handler,
         registry=registry,

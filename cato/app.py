@@ -20,6 +20,7 @@ from cato.display.console import RichDisplay
 from cato.display.input import InputHandler
 from cato.services.chat import ChatService
 from cato.storage.service import Storage
+from cato.storage.vector.base import VectorStore
 
 if TYPE_CHECKING:
     from cato.providers.llm.base import LLMProvider
@@ -42,6 +43,8 @@ class Application:
         Chat service for LLM interactions.
     storage : Storage
         Storage service for productivity data.
+    vector_store : VectorStore | None
+        Vector store for conversation memory (optional).
     display : RichDisplay
         Display handler for output.
     input_handler : InputHandler
@@ -57,6 +60,8 @@ class Application:
         Chat service instance.
     storage : Storage
         Storage service instance.
+    vector_store : VectorStore | None
+        Vector store instance (optional).
     display : RichDisplay
         Display handler instance.
     input_handler : InputHandler
@@ -72,6 +77,7 @@ class Application:
         config: CatoConfig,
         chat_service: ChatService,
         storage: Storage,
+        vector_store: VectorStore | None,
         display: RichDisplay,
         input_handler: InputHandler,
         registry: CommandRegistry,
@@ -87,6 +93,8 @@ class Application:
             Chat service for LLM interactions.
         storage : Storage
             Storage service for productivity data.
+        vector_store : VectorStore | None
+            Vector store for conversation memory (optional).
         display : RichDisplay
             Display handler for output.
         input_handler : InputHandler
@@ -97,6 +105,7 @@ class Application:
         self.config = config
         self.chat_service = chat_service
         self.storage = storage
+        self.vector_store = vector_store
         self.display = display
         self.input_handler = input_handler
         self.registry = registry
@@ -187,7 +196,7 @@ class Application:
             config=self.config,
             conversation=None,  # TODO: Implement conversation tracking
             llm=self.chat_service.provider if hasattr(self.chat_service, 'provider') else None,
-            vector_store=None,  # TODO: Implement vector store
+            vector_store=self.vector_store,
             storage=self.storage,
             display=self.display,
             registry=self.registry,

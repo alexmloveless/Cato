@@ -6,6 +6,8 @@ management, LLM providers, and vector store retrieval to handle chat completions
 """
 
 import asyncio
+import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import AsyncIterator
 
@@ -15,6 +17,7 @@ from cato.core.logging import get_logger
 from cato.core.types import CompletionResult
 from cato.providers.llm.base import LLMProvider
 from cato.services.conversation import Conversation
+from cato.storage.vector.base import VectorStore, VectorDocument
 
 logger = get_logger(__name__)
 
@@ -32,6 +35,8 @@ class ChatService:
         LLM provider instance for completions.
     config : CatoConfig
         Application configuration.
+    vector_store : VectorStore | None, optional
+        Vector store for conversation memory.
     system_prompt : str, optional
         System prompt to use. If not provided, loads from config or default.
 
@@ -41,14 +46,19 @@ class ChatService:
         The configured LLM provider.
     config : CatoConfig
         Application configuration.
+    vector_store : VectorStore | None
+        Vector store for conversation memory (optional).
     conversation : Conversation
         Current conversation state.
+    session_id : str
+        Unique identifier for current session.
     """
 
     def __init__(
         self,
         provider: LLMProvider,
         config: CatoConfig,
+        vector_store: VectorStore | None = None,
         system_prompt: str | None = None,
     ) -> None:
         """
@@ -60,16 +70,21 @@ class ChatService:
             LLM provider for completions.
         config : CatoConfig
             Application configuration.
+        vector_store : VectorStore | None, optional
+            Vector store for conversation memory.
         system_prompt : str, optional
             Override system prompt (default: load from config/defaults).
         """
         self.provider = provider
         self.config = config
+        self.vector_store = vector_store
+        self.session_id = str(uuid.uuid4())[:8]
         self.conversation = Conversation(
             system_prompt=system_prompt or self._load_system_prompt()
         )
         logger.info(
-            f"ChatService initialized with provider={provider.name}, model={provider.model}"
+            f"ChatService initialized with provider={provider.name}, model={provider.model}, "
+            f"vector_store={'enabled' if vector_store else 'disabled'}, session_id={self.session_id}"
         )
 
     def _load_system_prompt(self) -> str:
@@ -153,8 +168,10 @@ class ChatService:
         """
         Send a user message and get LLM response.
 
-        This method adds the user message to conversation history, optionally
-        truncates to fit token limits, sends to the LLM, and stores the response.
+        This method adds the user message to conversation history, retrieves
+        relevant context from vector store if enabled, truncates to fit token
+        limits, sends to the LLM, stores the response, and saves exchange to
+        vector store.
 
         Parameters
         ----------
@@ -175,6 +192,18 @@ class ChatService:
         LLMError
             If completion fails after retries.
         """
+        # Retrieve relevant context from vector store if enabled
+        if self.vector_store:
+            try:
+                context = await self._retrieve_context(user_message)
+                if context:
+                    logger.info(f"Retrieved {len(context)} context items from vector store")
+                    # Add context as a system message temporarily (not persisted)
+                    context_text = "\n\n".join([f"Context {i+1}:\n{c}" for i, c in enumerate(context)])
+                    self.conversation.add_user_message(f"[Context from previous conversations]\n{context_text}")
+            except Exception as e:
+                logger.warning(f"Failed to retrieve context from vector store: {e}")
+        
         # Add user message to history
         self.conversation.add_user_message(user_message)
         logger.debug(f"Added user message (length={len(user_message)})")
@@ -200,6 +229,13 @@ class ChatService:
         logger.info(
             f"Completed message exchange (tokens: {result.usage.total_tokens if result.usage else 'unknown'})"
         )
+        
+        # Store exchange in vector store if enabled
+        if self.vector_store:
+            try:
+                await self._store_exchange(user_message, result.content)
+            except Exception as e:
+                logger.warning(f"Failed to store exchange in vector store: {e}")
 
         return result
 
@@ -358,3 +394,75 @@ class ChatService:
         """
         self.conversation.system_prompt = new_prompt
         logger.info("System prompt updated")
+    
+    async def _retrieve_context(self, query: str) -> list[str]:
+        """
+        Retrieve relevant context from vector store.
+        
+        Parameters
+        ----------
+        query : str
+            User query for similarity search.
+        
+        Returns
+        -------
+        list[str]
+            Relevant context excerpts.
+        """
+        if not self.vector_store:
+            return []
+        
+        # Search vector store
+        results = await self.vector_store.search(
+            query=query,
+            n_results=self.config.vector_store.context_results,
+            filter={"type": "exchange"},
+        )
+        
+        # Filter by similarity threshold
+        threshold = self.config.vector_store.similarity_threshold
+        filtered_results = [
+            r for r in results
+            if r.score <= threshold  # Lower score = more similar for cosine distance
+        ]
+        
+        # Extract content
+        context = [r.document.content for r in filtered_results]
+        return context
+    
+    async def _store_exchange(self, user_message: str, assistant_message: str) -> None:
+        """
+        Store conversation exchange in vector store.
+        
+        Parameters
+        ----------
+        user_message : str
+            User's message.
+        assistant_message : str
+            Assistant's response.
+        """
+        if not self.vector_store:
+            return
+        
+        # Create combined content for embedding
+        combined_content = (
+            f"User: {user_message}\n\n"
+            f"Assistant: {assistant_message}"
+        )
+        
+        # Create document
+        exchange_id = str(uuid.uuid4())
+        doc = VectorDocument(
+            id=exchange_id,
+            content=combined_content,
+            metadata={
+                "type": "exchange",
+                "session_id": self.session_id,
+                "timestamp": datetime.now().isoformat(),
+                "user_message": user_message[:500],  # Truncated for metadata
+            },
+        )
+        
+        # Store in vector store
+        await self.vector_store.add([doc])
+        logger.debug(f"Stored exchange in vector store: {exchange_id}")
