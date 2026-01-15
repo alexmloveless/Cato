@@ -26,12 +26,12 @@ This file tracks implementation progress across agent sessions. **Agents MUST up
 
 ## Current Focus
 
-**Phase**: Phase 4 complete
-**Branch**: `feature/phase-04-display`
-**Next Task**: Phase 5.1 - Command Protocol & Registry
+**Phase**: Phase 5 complete
+**Branch**: `feature/phase-05-commands`
+**Next Task**: Phase 6.1 - Conversation Management
 **Blockers**: None
 
-**Last Updated**: 2026-01-15T21:40:00Z
+**Last Updated**: 2026-01-15T21:50:00Z
 
 ---
 
@@ -43,7 +43,7 @@ This file tracks implementation progress across agent sessions. **Agents MUST up
 | 2 | Storage Layer | ✅ Complete | `feature/phase-02-storage` |
 | 3 | Provider Layer | ✅ Complete | `feature/phase-03-providers` |
 | 4 | Display Layer | ✅ Complete | `feature/phase-04-display` |
-| 5 | Command Framework | ⬜ Not Started | `feature/phase-05-commands` |
+| 5 | Command Framework | ✅ Complete | `feature/phase-05-commands` |
 | 6 | Core Services | ⬜ Not Started | `feature/phase-06-services` |
 | 7 | Bootstrap & REPL | ⬜ Not Started | `feature/phase-07-bootstrap` |
 | 8 | Core Commands (MVP) | ⬜ Not Started | `feature/phase-08-core-commands` |
@@ -155,17 +155,17 @@ Status Legend: ⬜ Not Started | 🔄 In Progress | ✅ Complete | ⏸️ Blocke
 **Goal**: Slash command registration and execution infrastructure.
 
 #### 5.1 Command Protocol & Registry
-- [ ] Create `cato/commands/__init__.py`
-- [ ] Create `cato/commands/README.md`
-- [ ] Create `cato/commands/base.py`
-- [ ] Create `cato/commands/registry.py`
-- [ ] Create `cato/commands/parser.py`
+- [x] Create `cato/commands/__init__.py`
+- [x] Create `cato/commands/README.md`
+- [x] Create `cato/commands/base.py`
+- [x] Create `cato/commands/registry.py`
+- [x] Create `cato/commands/parser.py`
 
 #### 5.2 Command Executor
-- [ ] Create `cato/commands/executor.py`
+- [x] Create `cato/commands/executor.py`
 
 #### 5.3 Command Discovery
-- [ ] Update `cato/commands/__init__.py` with discover_commands()
+- [x] Command discovery via decorator registration
 
 ---
 
@@ -354,4 +354,5 @@ Record significant sessions here for continuity.
 | 2026-01-15 | Claude | Phase 2 complete: storage layer with SQLite, repositories, migrations |
 | 2026-01-15 | Claude | Phase 3 complete: provider layer with OpenAI, Anthropic, Google, Ollama |
 | 2026-01-15 | Claude | Phase 4 complete: display layer with Rich output and prompt_toolkit input |
+| 2026-01-15 | Claude | Phase 5 complete: command framework with decorator registration |
 
