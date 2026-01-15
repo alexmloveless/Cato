@@ -1,0 +1,180 @@
+# Help System Index
+# Single source of truth for navigation and command lookup
+
+topics:
+  - id: overview
+    title: Help Overview
+    path: topics/overview.md
+  - id: commands
+    title: All Commands
+    path: topics/commands.md
+
+categories:
+  - id: core
+    title: Core Commands
+    commands: [help, exit, quit, q, clear, config]
+  
+  - id: history
+    title: History & Context
+    commands: [history, delete, model, showsys, loglevel]
+  
+  - id: vector
+    title: Vector Store
+    commands: [vadd, vdoc, vquery, vstats, vdelete, vget]
+  
+  - id: productivity
+    title: Productivity
+    commands: [st, list]
+
+commands:
+  - id: help
+    title: /help
+    aliases: []
+    summary: "Show help information"
+    usage: "/help [topic|command]"
+    category: core
+    path: commands/help.md
+  
+  - id: exit
+    title: /exit
+    aliases: [quit, q]
+    summary: "Exit the application"
+    usage: "/exit"
+    category: core
+    path: commands/exit.md
+  
+  - id: quit
+    title: /quit
+    aliases: []
+    summary: "Exit the application (alias for /exit)"
+    usage: "/quit"
+    category: core
+    path: commands/exit.md
+  
+  - id: q
+    title: /q
+    aliases: []
+    summary: "Exit the application (alias for /exit)"
+    usage: "/q"
+    category: core
+    path: commands/exit.md
+  
+  - id: clear
+    title: /clear
+    aliases: []
+    summary: "Clear conversation history and screen"
+    usage: "/clear"
+    category: core
+    path: commands/clear.md
+  
+  - id: config
+    title: /config
+    aliases: []
+    summary: "Show current configuration"
+    usage: "/config"
+    category: core
+    path: commands/config.md
+  
+  - id: history
+    title: /history
+    aliases: []
+    summary: "Show conversation history"
+    usage: "/history [n]"
+    category: history
+    path: commands/history.md
+  
+  - id: delete
+    title: /delete
+    aliases: []
+    summary: "Delete recent exchanges from history"
+    usage: "/delete [n]"
+    category: history
+    path: commands/delete.md
+  
+  - id: model
+    title: /model
+    aliases: []
+    summary: "Show or change current LLM model"
+    usage: "/model [model_name]"
+    category: history
+    path: commands/model.md
+  
+  - id: showsys
+    title: /showsys
+    aliases: []
+    summary: "Display current system prompt"
+    usage: "/showsys"
+    category: history
+    path: commands/showsys.md
+  
+  - id: loglevel
+    title: /loglevel
+    aliases: []
+    summary: "Show or change logging level"
+    usage: "/loglevel [level]"
+    category: history
+    path: commands/loglevel.md
+  
+  - id: vadd
+    title: /vadd
+    aliases: []
+    summary: "Add text to vector store"
+    usage: "/vadd <text>"
+    category: vector
+    path: commands/vadd.md
+  
+  - id: vdoc
+    title: /vdoc
+    aliases: []
+    summary: "Add document file to vector store"
+    usage: "/vdoc <path>"
+    category: vector
+    path: commands/vdoc.md
+  
+  - id: vquery
+    title: /vquery
+    aliases: []
+    summary: "Query vector store for similar content"
+    usage: "/vquery <query> [n_results]"
+    category: vector
+    path: commands/vquery.md
+  
+  - id: vstats
+    title: /vstats
+    aliases: []
+    summary: "Display vector store statistics"
+    usage: "/vstats"
+    category: vector
+    path: commands/vstats.md
+  
+  - id: vdelete
+    title: /vdelete
+    aliases: []
+    summary: "Delete document from vector store"
+    usage: "/vdelete <id>"
+    category: vector
+    path: commands/vdelete.md
+  
+  - id: vget
+    title: /vget
+    aliases: []
+    summary: "Retrieve document from vector store by ID"
+    usage: "/vget <id>"
+    category: vector
+    path: commands/vget.md
+  
+  - id: st
+    title: /st
+    aliases: [show-tasks, tasks]
+    summary: "Show tasks with filtering and sorting"
+    usage: "/st [options]"
+    category: productivity
+    path: commands/st.md
+  
+  - id: list
+    title: /list
+    aliases: [lists, show-lists]
+    summary: "Show lists and list items"
+    usage: "/list [list_name]"
+    category: productivity
+    path: commands/list.md

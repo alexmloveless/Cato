@@ -5,80 +5,110 @@ This module implements the most basic commands needed for a functional
 chat client: help, exit, clear, and config display.
 """
 
+import logging
+
 from cato.commands.base import CommandContext, CommandResult
 from cato.commands.registry import command
+from cato.services.help import HelpService
+
+logger = logging.getLogger(__name__)
 
 
 @command(name="help", aliases=["h", "?"])
-async def help_command(ctx: CommandContext, args: list[str]) -> CommandResult:
+async def help_command(ctx: CommandContext, *args: str) -> CommandResult:
     """
-    Display help information about available commands.
+    Display help information about commands and topics.
 
-    Usage: /help [command]
-
-    Without arguments, shows a list of all available commands.
-    With a command name, shows detailed help for that command.
+    Usage: 
+      /help                    # Show overview
+      /help commands           # List all commands
+      /help <topic>            # Show topic or category
+      /help <command>          # Show command help
+      /help model "question"   # Ask model about Cato
 
     Parameters
     ----------
     ctx : CommandContext
         Command execution context.
-    args : list[str]
-        Command arguments (optional command name).
+    args : tuple[str, ...]
+        Query (topic, category, or command) or 'model' with question.
 
     Returns
     -------
     CommandResult
         Help information to display.
     """
-    registry = ctx.registry
+    # Initialize HelpService
+    help_service = HelpService()
     
-    if not registry:
-        return CommandResult(
-            success=False,
-            message="Command registry not available"
-        )
-
-    # Show help for specific command
-    if args:
-        command_name = args[0]
-        command_func = registry.get(command_name)
-        
-        if command_func is None:
+    # Handle /help model "question"
+    if args and args[0] == "model":
+        if len(args) < 2:
             return CommandResult(
                 success=False,
-                message=f"Unknown command: {command_name}"
+                message="Usage: /help model \"your question\""
             )
         
-        # Show basic help for the command
-        help_text = f"Command: /{command_name}\n\n"
-        if hasattr(command_func, '__doc__') and command_func.__doc__:
-            help_text += command_func.__doc__.strip()
-        else:
-            help_text += "No documentation available."
+        question = " ".join(args[1:])
         
-        return CommandResult(success=True, message=help_text)
+        # Get all help files for context
+        help_files = help_service.get_all_help_files()
+        
+        # Build context from help files
+        context = "# Cato Help Documentation\n\n"
+        for file_path, content in help_files:
+            context += f"## {file_path}\n\n{content}\n\n---\n\n"
+        
+        # Create one-off LLM query
+        try:
+            from cato.core.types import Message
+            
+            messages = [
+                Message(
+                    role="system",
+                    content="You are a helpful assistant for Cato, a terminal-first LLM chat client. "
+                            "Answer questions strictly based on the help documentation provided. "
+                            "If the answer is not in the documentation, say so."
+                ),
+                Message(
+                    role="user",
+                    content=f"{context}\n\nQuestion: {question}"
+                )
+            ]
+            
+            # Use LLM provider directly (don't add to conversation history)
+            result = await ctx.llm.complete(messages=messages)
+            
+            return CommandResult(
+                success=True,
+                message=f"**Help Model Response:**\n\n{result.content}"
+            )
+        except Exception as e:
+            logger.error(f"Failed to query help model: {e}")
+            return CommandResult(
+                success=False,
+                message=f"Failed to query help model: {e}"
+            )
     
-    # Show list of all commands
-    all_commands = registry.list_commands()
+    # Regular help query
+    query = args[0] if args else None
+    content = help_service.get_help_content(query)
     
-    help_text = """# Available Commands
-
-## Registered Commands
-"""
-    for name, description, aliases in all_commands:
-        alias_str = f" ({', '.join(aliases)})" if aliases else ""
-        help_text += f"- **/{name}**{alias_str} - {description}\n"
+    if content:
+        return CommandResult(success=True, message=content)
     
-    help_text += """
-
-## General Help
-
-Type a message to chat with the AI, or use `/command` to execute commands.
-Use `/help <command>` for detailed help on a specific command.
-"""
+    # Not found - provide suggestions
+    suggestions = help_service.get_suggestions(query) if query else []
     
-    return CommandResult(success=True, message=help_text.strip())
+    error_msg = f"Help topic not found: {query}\n\n"
+    if suggestions:
+        error_msg += "Did you mean:\n"
+        for suggestion in suggestions:
+            error_msg += f"- /help {suggestion}\n"
+    else:
+        error_msg += "Try:\n- /help commands - List all commands\n- /help <category> - Show category commands"
+    
+    return CommandResult(success=False, message=error_msg.strip())
 
 
 @command(name="exit", aliases=["quit", "q"])
