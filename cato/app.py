@@ -81,6 +81,7 @@ class Application:
         display: RichDisplay,
         input_handler: InputHandler,
         registry: CommandRegistry,
+        config_path: str | None = None,
     ) -> None:
         """
         Initialize application with injected dependencies.
@@ -101,6 +102,8 @@ class Application:
             Input handler for user input.
         registry : CommandRegistry
             Command registry for slash commands.
+        config_path : str | None
+            Path to config file that was loaded (optional).
         """
         self.config = config
         self.chat_service = chat_service
@@ -109,8 +112,9 @@ class Application:
         self.display = display
         self.input_handler = input_handler
         self.registry = registry
+        self.config_path = config_path
         self.running = False
-        
+
         # Create executor with context factory
         self.executor = CommandExecutor(
             registry=registry,
@@ -275,24 +279,55 @@ class Application:
         """
         Display welcome message and basic usage info.
         """
-        welcome_text = """
-# Welcome to Cato
+        from pathlib import Path
 
-A terminal-first LLM chat client with memory, productivity features, and more.
+        # Get profile name
+        profile_name = self.config.profile_name or "Default"
 
-**Quick Start:**
-- Type messages to chat with the AI
-- Use `/help` to see available commands
-- Use `/exit` to quit
+        # Get provider info
+        provider = self.chat_service.provider.name.capitalize()
+        model = self.chat_service.provider.model
+        temp = self.config.llm.temperature
+        max_tokens = self.config.llm.max_tokens
 
-Provider: {provider} | Model: {model}
-        """.format(
-            provider=self.chat_service.provider.name,
-            model=self.chat_service.provider.model,
-        ).strip()
+        # Get feature status
+        vector_enabled = "✓" if self.vector_store else "✗"
+        tts_enabled = "✓" if self.config.tts.enabled else "✗"
+        web_enabled = "✓" if self.config.web_search.enabled else "✗"
 
-        self.display.show_info(welcome_text)
-        logger.info(f"Welcome message displayed (provider={self.chat_service.provider.name})")
+        # Get absolute paths
+        db_path = Path(self.storage._db._path).resolve()
+        config_path = Path(self.config_path).resolve() if self.config_path else Path("~/.config/cato/config.yaml").expanduser()
+
+        welcome_text = f"""[bold cyan]╔══════════════════════════════════════════════════════════════════════╗[/bold cyan]
+[bold cyan]║[/bold cyan]                                                                      [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]     [bold white]██████╗ █████╗ ████████╗ ██████╗[/bold white]                                [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]    [bold white]██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗[/bold white]                               [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]    [bold white]██║     ███████║   ██║   ██║   ██║[/bold white]                               [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]    [bold white]██║     ██╔══██║   ██║   ██║   ██║[/bold white]                               [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]    [bold white]╚██████╗██║  ██║   ██║   ╚██████╔╝[/bold white]                               [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]     [bold white]╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝[/bold white]                                [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]                                                                      [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]    [dim]Terminal-first LLM chat with memory & productivity features[/dim]      [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]                                                                      [bold cyan]║[/bold cyan]
+[bold cyan]╠══════════════════════════════════════════════════════════════════════╣[/bold cyan]
+[bold cyan]║[/bold cyan]  [bold yellow]Profile:[/bold yellow] {profile_name:<27} [bold yellow]Provider:[/bold yellow] {provider:<20} [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]  [bold yellow]Model:[/bold yellow] {model:<29} [bold yellow]Temperature:[/bold yellow] {temp:<16} [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]                                                                      [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]  [bold green]Vector Store:[/bold green] [{vector_enabled}] Enabled          [bold green]TTS:[/bold green] [{tts_enabled}] Enabled                    [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]  [bold green]Web Search:[/bold green] [{web_enabled}] Enabled                                              [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]                                                                      [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]  [bold magenta]Config:[/bold magenta] {str(config_path):<58} [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]  [bold magenta]Database:[/bold magenta] {str(db_path):<56} [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]                                                                      [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]  [dim]Type messages to chat • /help for commands • /exit to quit[/dim]         [bold cyan]║[/bold cyan]
+[bold cyan]╚══════════════════════════════════════════════════════════════════════╝[/bold cyan]"""
+
+        self.display.show_message(DisplayMessage(
+            content=welcome_text,
+            message_type="info"
+        ))
+        logger.info(f"Welcome message displayed (profile={profile_name}, provider={provider})")
 
     async def _shutdown(self) -> None:
         """

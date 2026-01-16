@@ -156,13 +156,16 @@ def create_application(config_path: Path | None = None) -> "Application":
     setup_logging(config.logging)
 
     # Create components bottom-up through layers
-    app = _create_application_with_config(config)
-    
+    app = _create_application_with_config(config, config_path)
+
     logger.info("Application bootstrap complete")
     return app
 
 
-def _create_application_with_config(config: CatoConfig) -> "Application":
+def _create_application_with_config(
+    config: CatoConfig,
+    config_path: Path | None = None
+) -> "Application":
     """
     Create application instance from validated config.
 
@@ -170,6 +173,8 @@ def _create_application_with_config(config: CatoConfig) -> "Application":
     ----------
     config : CatoConfig
         Validated configuration object.
+    config_path : Path | None
+        Path to config file that was loaded (optional).
 
     Returns
     -------
@@ -201,7 +206,7 @@ def _create_application_with_config(config: CatoConfig) -> "Application":
     # Create display components
     logger.debug(f"Creating display with theme: {config.display.theme}")
     display = RichDisplay(config=config.display)
-    
+
     logger.debug("Creating input handler")
     input_handler = InputHandler(config=config.display, history_path=config.commands.history_file)
 
@@ -218,6 +223,7 @@ def _create_application_with_config(config: CatoConfig) -> "Application":
         display=display,
         input_handler=input_handler,
         registry=registry,
+        config_path=str(config_path) if config_path else None,
     )
 
     return app
@@ -294,7 +300,9 @@ def create_application_for_testing(
         config=config,
         chat_service=components.get("chat_service"),
         storage=components.get("storage"),
+        vector_store=components.get("vector_store"),
         display=components.get("display"),
         input_handler=components.get("input_handler"),
         registry=components.get("registry"),
+        config_path=None,
     )
