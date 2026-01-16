@@ -1,9 +1,15 @@
 """Google Gemini API provider implementation."""
 
 import logging
+import warnings
 from collections.abc import AsyncIterator
 
+# Suppress deprecation warning for google.generativeai
+# This package is deprecated but still functional. Migration to google.genai
+# should be done in a future update when the new package is stable.
+warnings.filterwarnings("ignore", category=FutureWarning)
 import google.generativeai as genai
+warnings.resetwarnings()  # Reset filter after import
 
 from cato.core.config import GoogleConfig
 from cato.core.exceptions import LLMConnectionError, LLMResponseError
