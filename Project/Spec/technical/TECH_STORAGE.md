@@ -1,7 +1,7 @@
 # Storage Technical Specification
 
 ## Overview
-Cato uses SQLite for structured data storage (tasks, lists). The database provides persistent storage for productivity features with a simple data access layer.
+Cato uses SQLite for structured data storage (lists, sessions). The database provides persistent storage for productivity features with a simple data access layer.
 
 ## Database Location
 ```
@@ -12,52 +12,40 @@ Configurable via `storage.database_path` in config.
 
 ## Schema
 
-### Tasks Table
-```sql
-CREATE TABLE IF NOT EXISTS tasks (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    description TEXT,
-    status TEXT NOT NULL DEFAULT 'active',  -- active, in_progress, completed, deleted
-    priority TEXT DEFAULT 'medium',          -- low, medium, high, urgent
-    category TEXT,
-    due_date TEXT,                           -- ISO 8601 format
-    created_at TEXT NOT NULL,                -- ISO 8601 format
-    updated_at TEXT NOT NULL,                -- ISO 8601 format
-    completed_at TEXT,                       -- ISO 8601 format
-    metadata TEXT                            -- JSON for extensibility
-);
-
-CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
-CREATE INDEX IF NOT EXISTS idx_tasks_category ON tasks(category);
-CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority);
-CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
-```
-
 ### Lists Table
 ```sql
 CREATE TABLE IF NOT EXISTS lists (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
+    name TEXT PRIMARY KEY,
     description TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     metadata TEXT
 );
 
+CREATE INDEX IF NOT EXISTS idx_lists_created ON lists(created_at);
+```
+
+### List Items Table
+```sql
 CREATE TABLE IF NOT EXISTS list_items (
-    id TEXT PRIMARY KEY,
-    list_id TEXT NOT NULL,
-    content TEXT NOT NULL,
-    checked INTEGER NOT NULL DEFAULT 0,
-    position INTEGER NOT NULL DEFAULT 0,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    list_name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',  -- pending, active, in_progress, done
+    priority TEXT NOT NULL DEFAULT 'medium',  -- urgent, high, medium, low
+    category TEXT,
+    tags TEXT,                                -- JSON array
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    metadata TEXT,
-    FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE
+    metadata TEXT,                            -- JSON for extensibility
+    FOREIGN KEY (list_name) REFERENCES lists(name) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_list_items_list_id ON list_items(list_id);
+CREATE INDEX IF NOT EXISTS idx_list_items_list_name ON list_items(list_name);
+CREATE INDEX IF NOT EXISTS idx_list_items_status ON list_items(status);
+CREATE INDEX IF NOT EXISTS idx_list_items_priority ON list_items(priority);
+CREATE INDEX IF NOT EXISTS idx_list_items_category ON list_items(category);
+CREATE INDEX IF NOT EXISTS idx_list_items_created ON list_items(created_at);
 ```
 
 
@@ -113,178 +101,16 @@ class Repository(Protocol[T]):
         ...
 ```
 
-### Task Repository
-```python
-from pydantic import BaseModel
+### List Repository
 
-class Task(BaseModel):
-    """
-    Task entity.
-    
-    Uses Pydantic for validation as data crosses SQLite boundary.
-    """
-    id: str
-    title: str
-    description: str | None
-    status: Literal["active", "in_progress", "completed", "deleted"]
-    priority: Literal["low", "medium", "high", "urgent"]
-    category: str | None
-    due_date: datetime | None
-    created_at: datetime
-    updated_at: datetime
-    completed_at: datetime | None
-    metadata: dict
+See [TECH_SPEC_LISTS.md](TECH_SPEC_LISTS.md) for complete list repository implementation.
 
-
-class TaskRepository:
-    """SQLite-backed task repository."""
-    
-    def __init__(self, db: Database) -> None:
-        self._db = db
-    
-    async def get(self, id: str) -> Task | None:
-        """
-        Get task by ID.
-        
-        Parameters
-        ----------
-        id
-            Task ID.
-        
-        Returns
-        -------
-        Task | None
-            Task if found.
-        """
-        row = await self._db.fetchone(
-            "SELECT * FROM tasks WHERE id = ?",
-            (id,),
-        )
-        return self._row_to_task(row) if row else None
-    
-    async def get_all(
-        self,
-        status: str | None = None,
-        category: str | None = None,
-        priority: str | None = None,
-        sort_by: str = "created_at",
-        order: str = "asc",
-    ) -> list[Task]:
-        """
-        Get tasks with optional filters.
-        
-        Parameters
-        ----------
-        status
-            Filter by status.
-        category
-            Filter by category.
-        priority
-            Filter by priority.
-        sort_by
-            Sort field.
-        order
-            Sort order (asc/desc).
-        
-        Returns
-        -------
-        list[Task]
-            Matching tasks.
-        """
-        query = "SELECT * FROM tasks WHERE 1=1"
-        params = []
-        
-        if status:
-            query += " AND status = ?"
-            params.append(status)
-        if category:
-            query += " AND category = ?"
-            params.append(category)
-        if priority:
-            query += " AND priority = ?"
-            params.append(priority)
-        
-        # Validate sort field to prevent SQL injection
-        valid_sorts = {"created_at", "updated_at", "priority", "due_date", "title"}
-        if sort_by not in valid_sorts:
-            sort_by = "created_at"
-        
-        order = "DESC" if order.lower() == "desc" else "ASC"
-        query += f" ORDER BY {sort_by} {order}"
-        
-        rows = await self._db.fetchall(query, tuple(params))
-        return [self._row_to_task(row) for row in rows]
-    
-    async def create(self, task: Task) -> str:
-        """Create new task."""
-        await self._db.execute(
-            """
-            INSERT INTO tasks (
-                id, title, description, status, priority, category,
-                due_date, created_at, updated_at, completed_at, metadata
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                task.id,
-                task.title,
-                task.description,
-                task.status,
-                task.priority,
-                task.category,
-                task.due_date.isoformat() if task.due_date else None,
-                task.created_at.isoformat(),
-                task.updated_at.isoformat(),
-                task.completed_at.isoformat() if task.completed_at else None,
-                json.dumps(task.metadata) if task.metadata else None,
-            ),
-        )
-        return task.id
-    
-    async def update(self, task: Task) -> None:
-        """Update existing task."""
-        task.updated_at = datetime.now()
-        await self._db.execute(
-            """
-            UPDATE tasks SET
-                title = ?, description = ?, status = ?, priority = ?,
-                category = ?, due_date = ?, updated_at = ?,
-                completed_at = ?, metadata = ?
-            WHERE id = ?
-            """,
-            (
-                task.title,
-                task.description,
-                task.status,
-                task.priority,
-                task.category,
-                task.due_date.isoformat() if task.due_date else None,
-                task.updated_at.isoformat(),
-                task.completed_at.isoformat() if task.completed_at else None,
-                json.dumps(task.metadata) if task.metadata else None,
-                task.id,
-            ),
-        )
-    
-    async def delete(self, id: str) -> None:
-        """Delete task by ID."""
-        await self._db.execute("DELETE FROM tasks WHERE id = ?", (id,))
-    
-    def _row_to_task(self, row: dict) -> Task:
-        """Convert database row to Task entity."""
-        return Task(
-            id=row["id"],
-            title=row["title"],
-            description=row["description"],
-            status=row["status"],
-            priority=row["priority"],
-            category=row["category"],
-            due_date=datetime.fromisoformat(row["due_date"]) if row["due_date"] else None,
-            created_at=datetime.fromisoformat(row["created_at"]),
-            updated_at=datetime.fromisoformat(row["updated_at"]),
-            completed_at=datetime.fromisoformat(row["completed_at"]) if row["completed_at"] else None,
-            metadata=json.loads(row["metadata"]) if row["metadata"] else {},
-        )
-```
+**Summary:**
+- `ListRepository`: Manages list metadata (name, description, counts)
+- `ListItemRepository`: Manages list items with filtering, sorting, and CRUD operations
+- Global integer IDs via AUTOINCREMENT
+- Support for filtering by status, priority, category, tags
+- JSON storage for tags array and metadata
 
 ### Database Connection
 ```python
@@ -387,47 +213,37 @@ class Migration:
 # Ordered list of migrations
 MIGRATIONS = [
     Migration(
-        name="001_initial_schema",
+        name="001_lists_schema",
         sql="""
-        CREATE TABLE IF NOT EXISTS tasks (
-            id TEXT PRIMARY KEY,
-            title TEXT NOT NULL,
-            description TEXT,
-            status TEXT NOT NULL DEFAULT 'active',
-            priority TEXT DEFAULT 'medium',
-            category TEXT,
-            due_date TEXT,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            completed_at TEXT,
-            metadata TEXT
-        );
-        
-        CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
-        CREATE INDEX IF NOT EXISTS idx_tasks_category ON tasks(category);
-        
         CREATE TABLE IF NOT EXISTS lists (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE,
+            name TEXT PRIMARY KEY,
             description TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             metadata TEXT
         );
-        
+
+        CREATE INDEX IF NOT EXISTS idx_lists_created ON lists(created_at);
+
         CREATE TABLE IF NOT EXISTS list_items (
-            id TEXT PRIMARY KEY,
-            list_id TEXT NOT NULL,
-            content TEXT NOT NULL,
-            checked INTEGER NOT NULL DEFAULT 0,
-            position INTEGER NOT NULL DEFAULT 0,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            list_name TEXT NOT NULL,
+            description TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            priority TEXT NOT NULL DEFAULT 'medium',
+            category TEXT,
+            tags TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             metadata TEXT,
-            FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE
+            FOREIGN KEY (list_name) REFERENCES lists(name) ON DELETE CASCADE
         );
-        
-        CREATE INDEX IF NOT EXISTS idx_list_items_list_id ON list_items(list_id);
+
+        CREATE INDEX IF NOT EXISTS idx_list_items_list_name ON list_items(list_name);
+        CREATE INDEX IF NOT EXISTS idx_list_items_status ON list_items(status);
+        CREATE INDEX IF NOT EXISTS idx_list_items_priority ON list_items(priority);
+        CREATE INDEX IF NOT EXISTS idx_list_items_category ON list_items(category);
+        CREATE INDEX IF NOT EXISTS idx_list_items_created ON list_items(created_at);
         """,
     ),
     Migration(
@@ -461,14 +277,13 @@ MIGRATIONS = [
 class Storage:
     """
     Unified storage service.
-    
+
     Provides access to all repositories through a single interface.
     """
-    
+
     def __init__(self, db: Database) -> None:
         self._db = db
-        self.tasks = TaskRepository(db)
-        self.lists = ListRepository(db)
+        self.lists = ListService(ListRepository(db), ListItemRepository(db))
         self.sessions = SessionRepository(db)
     
     async def connect(self) -> None:
@@ -563,28 +378,29 @@ storage:
 ```
 
 ## ID Generation
+
+### List Items
+
+List items use SQLite's AUTOINCREMENT for globally unique integer IDs:
+
+```python
+# No manual ID generation needed - SQLite handles it
+async def create(self, item: ListItem) -> int:
+    """Create item and return auto-generated ID."""
+    cursor = await self._db.execute(
+        "INSERT INTO list_items (...) VALUES (...)"
+    )
+    return cursor.lastrowid  # Auto-incrementing integer
+```
+
+### Other Entities
+
+For sessions and other entities, use UUID-based IDs:
+
 ```python
 import uuid
-from datetime import datetime
 
-def generate_id(prefix: str = "") -> str:
-    """
-    Generate unique ID.
-    
-    Parameters
-    ----------
-    prefix
-        Optional prefix for ID.
-    
-    Returns
-    -------
-    str
-        Unique ID string.
-    """
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    unique = uuid.uuid4().hex[:8]
-    
-    if prefix:
-        return f"{prefix}_{timestamp}_{unique}"
-    return f"{timestamp}_{unique}"
+def generate_id() -> str:
+    """Generate UUID-based ID."""
+    return str(uuid.uuid4())
 ```

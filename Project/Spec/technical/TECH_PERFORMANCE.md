@@ -62,7 +62,7 @@ class VectorStore:
 ### What NOT to Keep in Memory
 - Historical conversations
 - Vector store contents
-- Productivity database contents
+- List database contents
 
 ## Async Operations
 - Use async/await for I/O bound operations

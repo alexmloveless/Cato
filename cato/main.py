@@ -40,6 +40,12 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--dummy-mode",
+        action="store_true",
+        help="Use mock LLM responses; no external API calls",
+    )
+
+    parser.add_argument(
         "--version",
         action="version",
         version="cato 0.1.0",
@@ -66,7 +72,7 @@ def main() -> None:
     try:
         # Create application with dependency injection
         logger.info("Starting Cato")
-        app = create_application(config_path=args.config)
+        app = create_application(config_path=args.config, dummy_mode=args.dummy_mode)
 
         # Override debug mode if specified on CLI
         if args.debug:

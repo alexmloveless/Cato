@@ -109,7 +109,7 @@ def create_vector_store(config: CatoConfig) -> VectorStore | None:
         return None  # Continue without vector store
 
 
-def create_application(config_path: Path | None = None) -> "Application":
+def create_application(config_path: Path | None = None, dummy_mode: bool = False) -> "Application":
     """
     Wire up all application components and return configured instance.
 
@@ -126,6 +126,8 @@ def create_application(config_path: Path | None = None) -> "Application":
     ----------
     config_path : Path, optional
         Path to user configuration file. If None, uses default locations.
+    dummy_mode : bool, optional
+        If True, use mock LLM provider instead of real API (default: False).
 
     Returns
     -------
@@ -156,7 +158,7 @@ def create_application(config_path: Path | None = None) -> "Application":
     setup_logging(config.logging)
 
     # Create components bottom-up through layers
-    app = _create_application_with_config(config, config_path)
+    app = _create_application_with_config(config, config_path, dummy_mode)
 
     logger.info("Application bootstrap complete")
     return app
@@ -164,7 +166,8 @@ def create_application(config_path: Path | None = None) -> "Application":
 
 def _create_application_with_config(
     config: CatoConfig,
-    config_path: Path | None = None
+    config_path: Path | None = None,
+    dummy_mode: bool = False
 ) -> "Application":
     """
     Create application instance from validated config.
@@ -175,6 +178,8 @@ def _create_application_with_config(
         Validated configuration object.
     config_path : Path | None
         Path to config file that was loaded (optional).
+    dummy_mode : bool
+        If True, use mock LLM provider instead of real API.
 
     Returns
     -------
@@ -184,16 +189,25 @@ def _create_application_with_config(
     from cato.app import Application
 
     # Create LLM provider
-    logger.debug(f"Creating LLM provider: {config.llm.provider}")
-    llm_provider = create_provider(config)
+    if dummy_mode:
+        logger.info("Creating Mock LLM provider (dummy mode)")
+        from cato.providers.llm.mock import MockLLMProvider
+        llm_provider = MockLLMProvider(model=config.llm.model)
+    else:
+        logger.debug(f"Creating LLM provider: {config.llm.provider}")
+        llm_provider = create_provider(config)
 
     # Create storage service
     logger.debug(f"Creating storage service at {config.storage.database_path}")
     storage = asyncio.run(create_storage(config))
 
-    # Create vector store (if enabled)
-    logger.debug("Creating vector store")
-    vector_store = create_vector_store(config)
+    # Create vector store (if enabled and not in dummy mode)
+    if dummy_mode:
+        logger.info("Skipping vector store in dummy mode")
+        vector_store = None
+    else:
+        logger.debug("Creating vector store")
+        vector_store = create_vector_store(config)
 
     # Create chat service
     logger.debug("Creating chat service")

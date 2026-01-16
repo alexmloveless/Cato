@@ -307,32 +307,101 @@ Display vector store statistics.
 /vstats
 ```
 
-### Productivity Commands
+### List Commands
 
-See SPEC_PRODUCTIVITY.md for detailed productivity documentation.
+See SPEC_LISTS.md for detailed list system documentation.
 
-#### /st, /show-tasks, /tasks
-Show open tasks.
+#### /lists, /ll
+Show overview of all lists with item counts.
 ```
-/st                         # Show all open tasks
-/st work                    # Filter by category
-/st -p high                 # Filter by priority
-/st -s priority -o desc     # Sort by priority descending
-/st --status=completed      # Show completed tasks
+/lists                      # Show all lists overview
+/ll                         # Short alias
+```
+
+#### /list, /l
+Display items in one or all lists.
+```
+/list todo                  # Show items in todo list
+/list                       # Show items from ALL lists
+/l todo -s status           # Sort by status
+/l todo -c work             # Filter by category
+/l todo -S done             # Show done items
+/l -p urgent                # Show urgent items across all lists
 ```
 
 **Options:**
-- `-s, --sort=<field>`: Sort by created, priority, category, due, id, status
-- `-o, --order=<asc|desc>`: Sort order
-- `-p, --priority=<level>`: Filter by priority
-- `-c, --category=<name>`: Filter by category
-- `-S, --status=<status>`: Filter by status (active, in_progress, completed)
+- `-s`: Sort field (priority, status, category, created, id)
+- `-o`: Sort order (asc, desc)
+- `-S`: Status filter (pending, active, in_progress, done, all)
+- `-p`: Priority filter (urgent, high, medium, low)
+- `-c`: Category filter
+- `-t`: Tag filter
 
-#### /list, /lists, /show-lists
-Show lists and list items.
+#### /add, /a
+Add item to a list.
 ```
-/list                   # Show all lists with counts
-/list shopping          # Show items in shopping list
+/add todo "Fix the bug"     # Add item
+/a todo "Call dentist" -p high -c health
+/a shopping "Milk" -t groceries
+```
+
+**Options:**
+- `-p`: Priority (urgent, high, medium, low)
+- `-S`: Status (pending, active, in_progress)
+- `-c`: Category
+- `-t`: Tag (repeatable)
+
+#### /update, /u
+Update an existing item (no list name needed, IDs are global).
+```
+/update 042 -S done         # Mark item 042 as done
+/u 042 -p urgent            # Change priority
+/u 042 -d "New description" # Update description
+/u 042 -c work -t bug       # Update category and tags
+```
+
+**Options:**
+- `-d`: Description
+- `-S`: Status
+- `-p`: Priority
+- `-c`: Category
+- `-t`: Replace all tags
+- `-T`: Add tag
+- `-R`: Remove tag
+
+#### /remove, /rm
+Remove an item (no list name needed, IDs are global).
+```
+/remove 042                 # Remove item 042
+/rm 035                     # Short alias
+```
+
+#### /move, /mv
+Move an item to a different list.
+```
+/move 042 backlog           # Move item 042 to backlog
+/mv 035 archive             # Short alias
+```
+
+#### /newlist, /nl
+Create a new list.
+```
+/newlist todo               # Create todo list
+/nl shopping "Weekly groceries"
+```
+
+#### /dellist, /dl
+Delete a list and all its items.
+```
+/dellist old_todos          # Delete list
+/dl old_todos -f            # Force delete without confirmation
+```
+
+#### /clear
+Clear items from a list.
+```
+/clear todo -S done         # Remove all done items
+/clear shopping -f          # Remove all items (force)
 ```
 
 ### Web Commands
@@ -385,8 +454,14 @@ Speak with custom instructions.
 | /continue | /cont |
 | /speak | /s |
 | /speaklike | /sl |
-| /st | /show-tasks, /tasks |
-| /list | /lists, /show-lists |
+| /lists | /ll |
+| /list | /l |
+| /add | /a |
+| /update | /u |
+| /remove | /rm |
+| /move | /mv |
+| /newlist | /nl |
+| /dellist | /dl |
 | /writemd | /w |
 
 ## Error Handling

@@ -49,7 +49,7 @@ This document defines Cato's core architectural patterns, component organisation
 
 #### Storage
 - Vector store operations (ChromaDB)
-- Productivity data persistence (SQLite)
+- List data persistence (SQLite)
 - File operations for attachments and exports
 - No business logic—pure data access
 
@@ -62,7 +62,7 @@ This document defines Cato's core architectural patterns, component organisation
 #### Services
 - Business logic orchestration
 - Chat service: message handling, context retrieval, response generation
-- Productivity service: task/list operations
+- List service: unified list/item operations (todos, shopping, etc.)
 - TTS service: text processing, audio generation
 - Web service: search execution, URL fetching
 
@@ -186,20 +186,20 @@ A dedicated `bootstrap.py` module handles component wiring:
 def create_application(config_path: Path | None = None) -> Application:
     """Wire up all components and return runnable application."""
     config = load_config(config_path)
-    
+
     # Create providers based on config
     llm = create_llm_provider(config.llm)
     vector_store = create_vector_store(config.vector_store)
-    productivity_db = create_productivity_db(config.storage)
-    
+    storage = create_storage(config.storage)
+
     # Create services with dependencies
     chat_service = ChatService(llm, vector_store, config.chat)
-    productivity_service = ProductivityService(productivity_db, config.productivity)
-    
+    list_service = storage.lists
+
     # Create command registry with services
     commands = create_command_registry(
         chat=chat_service,
-        productivity=productivity_service,
+        lists=list_service,
         config=config
     )
     
@@ -263,20 +263,21 @@ cato/                        # Repository root
 │   ├── storage/
 │   │   ├── __init__.py
 │   │   ├── README.md
+│   │   ├── database.py      # Database connection class
 │   │   ├── vector/
 │   │   │   ├── __init__.py
 │   │   │   ├── base.py      # VectorStore protocol
 │   │   │   └── chromadb.py
-│   │   └── productivity/
+│   │   └── repositories/
 │   │       ├── __init__.py
-│   │       ├── base.py      # ProductivityStore protocol
-│   │       └── sqlite.py
+│   │       ├── base.py      # Repository protocols
+│   │       └── lists.py     # ListRepository, ListItemRepository
 │   │
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── README.md
 │   │   ├── chat.py          # Chat orchestration
-│   │   ├── productivity.py  # Task/list logic
+│   │   ├── lists.py         # List/item operations
 │   │   ├── tts.py           # TTS orchestration
 │   │   └── web.py           # Web search orchestration
 │   │
@@ -290,7 +291,7 @@ cato/                        # Repository root
 │   │   ├── files.py         # /attach, /cd, /ls, /cat, /pwd
 │   │   ├── export.py        # /writemd, /writecode, /writejson, etc.
 │   │   ├── vector.py        # /vadd, /vdoc, /vquery, /vstats, /vdelete
-│   │   ├── productivity.py  # /st, /list
+│   │   ├── lists.py         # /list, /add, /update, /remove, /move, etc.
 │   │   ├── tts.py           # /speak, /speaklike
 │   │   └── web.py           # /web, /url
 │   │

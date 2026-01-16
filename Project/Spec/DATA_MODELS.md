@@ -29,36 +29,27 @@ Stored in the vector store as a single document per exchange.
 - `document` (VectorDocument)
 - `score` (float)
 
-## Task
-
-- `id` (string)
-- `title` (string)
-- `description` (string | null)
-- `status` (`active | in_progress | completed | deleted`)
-- `priority` (`low | medium | high | urgent`)
-- `category` (string | null)
-- `due_date` (ISO 8601 | null)
-- `created_at` (ISO 8601)
-- `updated_at` (ISO 8601)
-- `completed_at` (ISO 8601 | null)
-- `metadata` (dict)
-
 ## List
 
-- `id` (string)
-- `name` (string)
-- `description` (string | null)
+Metadata for a named list.
+
+- `name` (string, unique) - List name (e.g., "todo", "shopping")
+- `description` (string | null) - Optional description
 - `created_at` (ISO 8601)
 - `updated_at` (ISO 8601)
-- `metadata` (dict)
+- `metadata` (dict) - Extensible metadata
 
 ## List Item
 
-- `id` (string)
-- `list_id` (string)
-- `content` (string)
-- `checked` (bool)
-- `position` (int)
+Unified item model for all list types (todo, shopping, etc.).
+
+- `id` (integer, auto-increment) - Globally unique ID across all lists
+- `list_name` (string) - Name of parent list
+- `description` (string) - Item content
+- `status` (`pending | active | in_progress | done`)
+- `priority` (`urgent | high | medium | low`)
+- `category` (string | null) - Optional grouping category
+- `tags` (string[]) - Array of tags for flexible categorization
 - `created_at` (ISO 8601)
 - `updated_at` (ISO 8601)
-- `metadata` (dict)
+- `metadata` (dict) - Extensible metadata (for future additions like due_date)

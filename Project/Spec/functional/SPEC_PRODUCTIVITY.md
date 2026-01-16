@@ -1,6 +1,17 @@
 # Productivity System Specification
 
-## Overview
+> **⚠️ DEPRECATED:** This specification describes the old separate Tasks and Lists system.
+>
+> **See [SPEC_LISTS.md](SPEC_LISTS.md) for the new unified list system.**
+>
+> The new system combines Tasks and Lists into a single unified model with:
+> - One data structure for all list types
+> - Globally unique numeric IDs
+> - Short command aliases (/a, /l, /ls, /u, /rm, etc.)
+> - Single-letter flags (-p, -s, -c, -t, -S)
+> - No list name needed for updates/removes (global IDs)
+
+## Overview (OLD SYSTEM)
 
 The productivity system provides task management and list organization through explicit slash commands. It uses a dedicated agent/service to manage productivity data stored in SQLite.
 

@@ -152,7 +152,7 @@ tests/
 ├── integration/
 │   ├── test_chat_service.py
 │   ├── test_vector_store.py
-│   ├── test_productivity.py
+│   ├── test_lists.py
 │   └── ...
 └── e2e/
     ├── test_startup.py

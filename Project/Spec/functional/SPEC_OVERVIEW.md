@@ -8,7 +8,7 @@
 
 Cato provides a unified terminal interface for:
 - Conversational AI interactions with multiple LLM providers
-- Personal productivity management (tasks, lists)
+- Personal productivity management (unified list system for todos, shopping, etc.)
 - File operations and code management
 - Persistent conversational context with retrieval
 - Text-to-speech synthesis
@@ -58,7 +58,7 @@ This specification is divided into the following functional areas:
 | SPEC_CORE_CHAT.md | LLM integration, message processing, display |
 | SPEC_COMMAND_SYSTEM.md | Slash command framework and all commands |
 | SPEC_HELP_SYSTEM.md | Help system behavior and navigation |
-| SPEC_PRODUCTIVITY.md | Tasks, lists |
+| SPEC_LISTS.md | Unified list system (todos, shopping, etc.) |
 | SPEC_FILE_OPERATIONS.md | File commands, attach, export, aliases |
 | SPEC_VECTOR_STORE.md | Conversation storage, similarity search |
 | SPEC_TTS.md | Text-to-speech functionality |

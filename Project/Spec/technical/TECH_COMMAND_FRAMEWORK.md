@@ -273,16 +273,16 @@ Commands can use argument parsers for complex arguments:
 ```python
 from argparse import ArgumentParser, Namespace
 
-class TaskCommand:
-    """Show tasks with filtering and sorting."""
-    
+class ListCommand:
+    """Display list items with filtering and sorting."""
+
     def __init__(self) -> None:
-        self._parser = ArgumentParser(prog="/st", add_help=False)
-        self._parser.add_argument("category", nargs="?", default=None)
-        self._parser.add_argument("-p", "--priority", choices=["low", "medium", "high"])
-        self._parser.add_argument("-s", "--sort", default="created")
+        self._parser = ArgumentParser(prog="/list", add_help=False)
+        self._parser.add_argument("list_name", nargs="?", default=None)
+        self._parser.add_argument("-p", "--priority", choices=["urgent", "high", "medium", "low"])
+        self._parser.add_argument("-s", "--sort", default="priority")
         self._parser.add_argument("-o", "--order", choices=["asc", "desc"], default="asc")
-        self._parser.add_argument("-S", "--status", default="active")
+        self._parser.add_argument("-S", "--status", default="pending")
     
     async def execute(self, args: list[str], context: CommandContext) -> CommandResult:
         try:
@@ -478,7 +478,7 @@ class HelpCommand:
     # Subcommand handlers
     _TOPICS = {
         "commands": "_show_commands",
-        "productivity": "_show_productivity",
+        "lists": "_show_lists",
         "files": "_show_files",
         "model": "_ask_model",
     }
@@ -559,7 +559,7 @@ cato/commands/
 ├── files.py             # /attach, /pwd, /cd, /ls, /cat
 ├── export.py            # /writecode, /writemd, /writejson
 ├── vector.py            # /vadd, /vdoc, /vquery, /vstats
-├── productivity.py      # /st, /list
+├── lists.py             # /list, /add, /update, /remove, etc.
 ├── web.py               # /web, /url
 └── tts.py               # /speak, /speaklike
 ```
