@@ -324,8 +324,8 @@ class Application:
 [bold cyan]╚══════════════════════════════════════════════════════════════════════╝[/bold cyan]"""
 
         self.display.show_message(DisplayMessage(
-            content=welcome_text,
-            message_type="info"
+            role="info",
+            content=welcome_text
         ))
         logger.info(f"Welcome message displayed (profile={profile_name}, provider={provider})")
 
