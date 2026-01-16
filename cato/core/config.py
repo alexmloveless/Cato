@@ -104,7 +104,7 @@ class StorageConfig(BaseModel):
 
 class DisplayConfig(BaseModel):
     """Display and UI configuration."""
-    
+
     theme: str
     markdown_enabled: bool
     code_theme: str
@@ -112,7 +112,6 @@ class DisplayConfig(BaseModel):
     timestamps: bool
     spinner_style: str
     prompt_symbol: str
-    line_width: int
     exchange_delimiter: str
     exchange_delimiter_length: int
     style_overrides: dict[str, str] = Field(default_factory=dict)

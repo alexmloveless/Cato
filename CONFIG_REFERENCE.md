@@ -285,7 +285,6 @@ display:
   timestamps: false             # Show message timestamps
   spinner_style: "dots"         # Loading spinner
   prompt_symbol: "🐱 > "       # Input prompt (supports emoji)
-  line_width: 80               # Formatting width
   exchange_delimiter: "─"      # Exchange separator character
   exchange_delimiter_length: 60
 ```

@@ -136,10 +136,7 @@ display:
   
   # Input prompt symbol (supports Unicode/emoji)
   prompt_symbol: "🐱 > "
-  
-  # Terminal width for formatting (characters)
-  line_width: 80
-  
+
   # Character for exchange delimiter lines
   exchange_delimiter: "─"
   
