@@ -214,6 +214,14 @@ class OpenAIProvider:
             finish_reason=choice.finish_reason,
         )
     
+    async def close(self) -> None:
+        """Close the OpenAI client and cleanup resources."""
+        try:
+            await self._client.close()
+            logger.debug("OpenAI client closed")
+        except Exception as e:
+            logger.warning(f"Error closing OpenAI client: {e}")
+
     def _parse_retry_after(self, error: openai.RateLimitError) -> int | None:
         """Extract retry-after value from rate limit error."""
         # OpenAI typically includes retry-after in headers

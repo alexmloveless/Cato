@@ -340,13 +340,19 @@ class Application:
         self.running = False
 
         try:
+            # Close LLM provider connections
+            if self.chat_service and self.chat_service.provider:
+                if hasattr(self.chat_service.provider, 'close'):
+                    await self.chat_service.provider.close()
+                    logger.debug("LLM provider closed")
+
             # Close storage connections
             if self.storage:
                 await self.storage.close()
                 logger.debug("Storage service closed")
 
             self.display.show_info("Goodbye!")
-            
+
         except Exception as e:
             logger.exception("Error during shutdown")
             self.display.show_error(f"Shutdown error: {e}")

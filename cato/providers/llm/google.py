@@ -190,3 +190,7 @@ class GoogleProvider:
                 role = "model" if msg.role == "assistant" else "user"
                 history.append({"role": role, "parts": [msg.content]})
         return history
+
+    async def close(self) -> None:
+        """Close and cleanup resources (no-op for Google)."""
+        logger.debug("Google provider closed")

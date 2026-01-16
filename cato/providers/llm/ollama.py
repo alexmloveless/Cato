@@ -183,6 +183,10 @@ class OllamaProvider:
         """
         return len(text) // 4
     
+    async def close(self) -> None:
+        """Close and cleanup resources (no-op for Ollama)."""
+        logger.debug("Ollama provider closed")
+
     def _to_ollama_message(self, msg: Message) -> dict[str, str]:
         """Convert Message to Ollama format."""
         return {"role": msg.role, "content": msg.content}

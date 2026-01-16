@@ -184,10 +184,18 @@ class AnthropicProvider:
         """
         return len(text) // 4
     
+    async def close(self) -> None:
+        """Close the Anthropic client and cleanup resources."""
+        try:
+            await self._client.close()
+            logger.debug("Anthropic client closed")
+        except Exception as e:
+            logger.warning(f"Error closing Anthropic client: {e}")
+
     def _to_result(self, response: anthropic.types.Message) -> CompletionResult:
         """Convert Anthropic response to CompletionResult."""
         content = "".join(block.text for block in response.content if hasattr(block, "text"))
-        
+
         usage = None
         if response.usage:
             usage = TokenUsage(
@@ -195,7 +203,7 @@ class AnthropicProvider:
                 completion_tokens=response.usage.output_tokens,
                 total_tokens=response.usage.input_tokens + response.usage.output_tokens,
             )
-        
+
         return CompletionResult(
             content=content,
             model=response.model,
