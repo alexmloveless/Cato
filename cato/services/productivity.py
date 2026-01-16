@@ -1,6 +1,8 @@
 """Productivity service for task and list management."""
 
 import logging
+import uuid
+from datetime import datetime
 from typing import Literal
 
 from cato.storage.repositories.base import Task, List, ListItem
@@ -154,12 +156,12 @@ class ProductivityService:
     async def count_list_items(self, list_id: str) -> int:
         """
         Count items in a list.
-        
+
         Parameters
         ----------
         list_id : str
             List ID.
-        
+
         Returns
         -------
         int
@@ -167,3 +169,119 @@ class ProductivityService:
         """
         items = await self.get_list_items(list_id)
         return len(items)
+
+    async def create_task(
+        self,
+        title: str,
+        description: str | None = None,
+        priority: str | None = None,
+        category: str | None = None,
+        due_date: datetime | None = None,
+    ) -> Task:
+        """
+        Create a new task.
+
+        Parameters
+        ----------
+        title : str
+            Task title.
+        description : str | None, optional
+            Task description.
+        priority : str | None, optional
+            Priority (urgent, high, medium, low).
+        category : str | None, optional
+            Task category.
+        due_date : datetime | None, optional
+            Due date for task.
+
+        Returns
+        -------
+        Task
+            Created task.
+        """
+        task = Task(
+            id=f"task-{uuid.uuid4().hex[:8]}",
+            title=title,
+            description=description,
+            status="active",
+            priority=priority,
+            category=category,
+            due_date=due_date,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            completed_at=None,
+            metadata={},
+        )
+        await self._storage.tasks.create(task)
+        logger.info(f"Created task: {task.id} - {title}")
+        return task
+
+    async def create_list(
+        self,
+        name: str,
+        description: str | None = None,
+    ) -> List:
+        """
+        Create a new list.
+
+        Parameters
+        ----------
+        name : str
+            List name.
+        description : str | None, optional
+            List description.
+
+        Returns
+        -------
+        List
+            Created list.
+        """
+        lst = List(
+            id=f"list-{uuid.uuid4().hex[:8]}",
+            name=name,
+            description=description,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            metadata={},
+        )
+        await self._storage.lists.create(lst)
+        logger.info(f"Created list: {lst.id} - {name}")
+        return lst
+
+    async def add_list_item(
+        self,
+        list_id: str,
+        content: str,
+    ) -> ListItem:
+        """
+        Add item to a list.
+
+        Parameters
+        ----------
+        list_id : str
+            List ID to add item to.
+        content : str
+            Item content.
+
+        Returns
+        -------
+        ListItem
+            Created list item.
+        """
+        # Get current item count for position
+        items = await self.get_list_items(list_id)
+        position = len(items)
+
+        item = ListItem(
+            id=f"item-{uuid.uuid4().hex[:8]}",
+            list_id=list_id,
+            content=content,
+            checked=False,
+            position=position,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            metadata={},
+        )
+        await self._storage.list_items.create(item)
+        logger.info(f"Added item to list {list_id}: {item.id}")
+        return item

@@ -394,3 +394,234 @@ async def show_lists(ctx: CommandContext, *args: str) -> CommandResult:
             success=False,
             message=f"Failed to retrieve lists: {e}"
         )
+
+
+@command(
+    name="addtask",
+    description="Create a new task",
+    usage="/addtask <title> [-p priority] [-c category] [-d description]",
+    aliases=["at", "newtask"],
+)
+async def add_task(ctx: CommandContext, *args: str) -> CommandResult:
+    """
+    Create a new task.
+
+    Parameters
+    ----------
+    ctx : CommandContext
+        Command execution context.
+    args : tuple[str, ...]
+        Task title and options.
+
+    Returns
+    -------
+    CommandResult
+        Result with task confirmation.
+    """
+    if not args:
+        return CommandResult(
+            success=False,
+            message="Usage: /addtask <title> [-p priority] [-c category] [-d description]"
+        )
+
+    # Parse options
+    title_parts = []
+    priority = None
+    category = None
+    description = None
+
+    i = 0
+    while i < len(args):
+        arg = args[i]
+
+        if arg in ["-p", "--priority"] and i + 1 < len(args):
+            priority = args[i + 1]
+            i += 2
+        elif arg in ["-c", "--category"] and i + 1 < len(args):
+            category = args[i + 1]
+            i += 2
+        elif arg in ["-d", "--description"] and i + 1 < len(args):
+            description = args[i + 1]
+            i += 2
+        else:
+            title_parts.append(arg)
+            i += 1
+
+    if not title_parts:
+        return CommandResult(
+            success=False,
+            message="Task title is required."
+        )
+
+    title = " ".join(title_parts)
+
+    # Create productivity service
+    productivity = ProductivityService(ctx.storage)
+
+    try:
+        task = await productivity.create_task(
+            title=title,
+            description=description,
+            priority=priority,
+            category=category,
+        )
+
+        msg = f"✓ Created task: **{task.title}**\n"
+        if priority:
+            msg += f"- Priority: {priority}\n"
+        if category:
+            msg += f"- Category: {category}\n"
+        if description:
+            msg += f"- Description: {description}\n"
+
+        return CommandResult(
+            success=True,
+            message=msg.strip()
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to create task: {e}")
+        return CommandResult(
+            success=False,
+            message=f"Failed to create task: {e}"
+        )
+
+
+@command(
+    name="newlist",
+    description="Create a new list",
+    usage="/newlist <name> [-d description]",
+    aliases=["nl", "createlist"],
+)
+async def new_list(ctx: CommandContext, *args: str) -> CommandResult:
+    """
+    Create a new list.
+
+    Parameters
+    ----------
+    ctx : CommandContext
+        Command execution context.
+    args : tuple[str, ...]
+        List name and options.
+
+    Returns
+    -------
+    CommandResult
+        Result with list confirmation.
+    """
+    if not args:
+        return CommandResult(
+            success=False,
+            message="Usage: /newlist <name> [-d description]"
+        )
+
+    # Parse options
+    name_parts = []
+    description = None
+
+    i = 0
+    while i < len(args):
+        arg = args[i]
+
+        if arg in ["-d", "--description"] and i + 1 < len(args):
+            description = args[i + 1]
+            i += 2
+        else:
+            name_parts.append(arg)
+            i += 1
+
+    if not name_parts:
+        return CommandResult(
+            success=False,
+            message="List name is required."
+        )
+
+    name = " ".join(name_parts)
+
+    # Create productivity service
+    productivity = ProductivityService(ctx.storage)
+
+    try:
+        lst = await productivity.create_list(
+            name=name,
+            description=description,
+        )
+
+        msg = f"✓ Created list: **{lst.name}**\n"
+        if description:
+            msg += f"- Description: {description}\n"
+
+        return CommandResult(
+            success=True,
+            message=msg.strip()
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to create list: {e}")
+        return CommandResult(
+            success=False,
+            message=f"Failed to create list: {e}"
+        )
+
+
+@command(
+    name="additem",
+    description="Add item to a list",
+    usage="/additem <list_name> <content>",
+    aliases=["ai", "add"],
+)
+async def add_item(ctx: CommandContext, *args: str) -> CommandResult:
+    """
+    Add item to a list.
+
+    Parameters
+    ----------
+    ctx : CommandContext
+        Command execution context.
+    args : tuple[str, ...]
+        List name and item content.
+
+    Returns
+    -------
+    CommandResult
+        Result with item confirmation.
+    """
+    if len(args) < 2:
+        return CommandResult(
+            success=False,
+            message="Usage: /additem <list_name> <content>"
+        )
+
+    list_name = args[0]
+    content = " ".join(args[1:])
+
+    # Create productivity service
+    productivity = ProductivityService(ctx.storage)
+
+    try:
+        # Get list by name
+        lst = await productivity.get_list(list_name)
+
+        if not lst:
+            return CommandResult(
+                success=False,
+                message=f"List '{list_name}' not found."
+            )
+
+        # Add item
+        item = await productivity.add_list_item(
+            list_id=lst.id,
+            content=content,
+        )
+
+        return CommandResult(
+            success=True,
+            message=f"✓ Added item to **{lst.name}**: {item.content}"
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to add item: {e}")
+        return CommandResult(
+            success=False,
+            message=f"Failed to add item: {e}"
+        )

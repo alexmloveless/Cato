@@ -76,8 +76,8 @@ class CommandExecutor:
         
         try:
             logger.info(f"Executing command: /{command_name} with args: {args}")
-            # Commands are async functions, call them directly
-            result = await command_cls(context, args)
+            # Commands are async functions, call them directly with unpacked args
+            result = await command_cls(context, *args)
             logger.debug(f"Command result: success={result.success}, message={result.message}")
             return result
         except CatoError:

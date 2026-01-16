@@ -7,6 +7,7 @@ from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.rule import Rule
 from rich.spinner import Spinner
 from rich.syntax import Syntax
 from rich.table import Table
@@ -37,16 +38,25 @@ class RichDisplay:
         """Display a message with role-based styling."""
         prefix = self._get_prefix(message.role)
         style = message.role
-        
+
         if self._config.timestamps and message.timestamp:
             timestamp = message.timestamp.strftime("%H:%M")
             prefix = f"[dim]{timestamp}[/dim] {prefix}"
-        
+
+        # Add spacing before message
+        self._console.print()
+
         if message.role == "assistant" and self._config.markdown_enabled:
             self._console.print(prefix, style=style)
             self._console.print(Markdown(message.content, code_theme=self._config.code_theme))
+            # Add horizontal rule after assistant response
+            self._console.print()
+            self._console.print(Rule(style="dim"))
         else:
             self._console.print(f"{prefix} {message.content}", style=style)
+            # Add spacing after user messages
+            if message.role == "user":
+                self._console.print()
     
     def _get_prefix(self, role: str) -> str:
         """Get display prefix for role."""

@@ -112,7 +112,7 @@ async def help_command(ctx: CommandContext, *args: str) -> CommandResult:
 
 
 @command(name="exit", aliases=["quit", "q"])
-async def exit_command(ctx: CommandContext, args: list[str]) -> CommandResult:
+async def exit_command(ctx: CommandContext, *args: str) -> CommandResult:
     """
     Exit the application.
 
@@ -124,7 +124,7 @@ async def exit_command(ctx: CommandContext, args: list[str]) -> CommandResult:
     ----------
     ctx : CommandContext
         Command execution context.
-    args : list[str]
+    args : tuple[str, ...]
         Command arguments (unused).
 
     Returns
@@ -140,7 +140,7 @@ async def exit_command(ctx: CommandContext, args: list[str]) -> CommandResult:
 
 
 @command(name="clear", aliases=["cls"])
-async def clear_command(ctx: CommandContext, args: list[str]) -> CommandResult:
+async def clear_command(ctx: CommandContext, *args: str) -> CommandResult:
     """
     Clear the conversation history.
 
@@ -153,7 +153,7 @@ async def clear_command(ctx: CommandContext, args: list[str]) -> CommandResult:
     ----------
     ctx : CommandContext
         Command execution context.
-    args : list[str]
+    args : tuple[str, ...]
         Command arguments (unused).
 
     Returns
@@ -169,7 +169,7 @@ async def clear_command(ctx: CommandContext, args: list[str]) -> CommandResult:
 
 
 @command(name="config", aliases=["cfg"])
-async def config_command(ctx: CommandContext, args: list[str]) -> CommandResult:
+async def config_command(ctx: CommandContext, *args: str) -> CommandResult:
     """
     Display current configuration.
 
@@ -182,7 +182,7 @@ async def config_command(ctx: CommandContext, args: list[str]) -> CommandResult:
     ----------
     ctx : CommandContext
         Command execution context.
-    args : list[str]
+    args : tuple[str, ...]
         Optional section name.
 
     Returns
@@ -191,7 +191,7 @@ async def config_command(ctx: CommandContext, args: list[str]) -> CommandResult:
         Configuration information.
     """
     config = ctx.config
-    
+
     # Show specific section
     if args:
         section = args[0].lower()
@@ -250,7 +250,7 @@ Available sections: llm, display, storage, commands
 
 
 @command(name="info", aliases=["about"])
-async def info_command(ctx: CommandContext, args: list[str]) -> CommandResult:
+async def info_command(ctx: CommandContext, *args: str) -> CommandResult:
     """
     Display information about Cato.
 
@@ -262,7 +262,7 @@ async def info_command(ctx: CommandContext, args: list[str]) -> CommandResult:
     ----------
     ctx : CommandContext
         Command execution context.
-    args : list[str]
+    args : tuple[str, ...]
         Command arguments (unused).
 
     Returns
