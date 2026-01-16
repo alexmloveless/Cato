@@ -285,5 +285,60 @@ async def info_command(ctx: CommandContext, args: list[str]) -> CommandResult:
 Cato is a terminal-first LLM chat client with conversation memory,
 productivity features, and extensible command system.
 """
-    
+
     return CommandResult(success=True, message=info.strip())
+
+
+@command(name="loglevel", aliases=["log"])
+async def loglevel_command(ctx: CommandContext, *args: str) -> CommandResult:
+    """
+    Show or change the logging level.
+
+    Usage:
+      /loglevel              # Show current level
+      /loglevel <level>      # Set level (DEBUG, INFO, WARNING, ERROR)
+
+    Parameters
+    ----------
+    ctx : CommandContext
+        Command execution context.
+    args : tuple[str, ...]
+        Optional log level to set.
+
+    Returns
+    -------
+    CommandResult
+        Current or updated log level.
+    """
+    valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR"]
+
+    # Show current level
+    if not args:
+        current_level = logging.getLogger().level
+        level_name = logging.getLevelName(current_level)
+
+        return CommandResult(
+            success=True,
+            message=f"Current log level: **{level_name}**\n\n"
+                   f"Available levels: {', '.join(valid_levels)}\n"
+                   f"Usage: /loglevel <level>"
+        )
+
+    # Set new level
+    new_level = args[0].upper()
+
+    if new_level not in valid_levels:
+        return CommandResult(
+            success=False,
+            message=f"Invalid log level: {new_level}\n"
+                   f"Valid levels: {', '.join(valid_levels)}"
+        )
+
+    # Update logging level
+    logging.getLogger().setLevel(getattr(logging, new_level))
+    logger.info(f"Log level changed to {new_level}")
+
+    return CommandResult(
+        success=True,
+        message=f"✓ Log level set to **{new_level}**"
+    )
