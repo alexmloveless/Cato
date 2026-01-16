@@ -40,6 +40,21 @@ Task and list management.
 - `/st [options]` - Show tasks with filtering and sorting
 - `/list [name]` - Show lists and list items
 
+## Web & Search
+
+Search the web and fetch URL content.
+
+- `/web "query" [engine]` - Search the web and add results to context
+- `/url <url>` - Fetch URL content and add to conversation
+- `/url_store` - Store previously fetched URL content in vector store
+
+## Text-to-Speech
+
+Convert responses to speech.
+
+- `/speak [voice] [model]` - Speak the last assistant response
+- `/speaklike "instructions" [voice] [model]` - Speak with custom instructions
+
 ---
 
 Use `/help <command>` for detailed help on any command.

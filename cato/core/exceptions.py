@@ -144,6 +144,47 @@ class NetworkError(IOError):
     """Network operation failed."""
 
 
+# TTS Provider exceptions
+class TTSError(CatoError):
+    """TTS provider or API error."""
+
+
+class TTSConnectionError(TTSError):
+    """Cannot connect to TTS provider."""
+
+
+class TTSAuthenticationError(TTSError):
+    """API key invalid or missing."""
+
+
+class TTSRateLimitError(TTSError):
+    """
+    Rate limit exceeded.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error description.
+    retry_after : int | None, optional
+        Seconds to wait before retrying.
+    context : dict[str, Any] | None, optional
+        Optional dict of contextual data for debugging.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        retry_after: int | None = None,
+        context: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, context)
+        self.retry_after = retry_after
+
+
+class TTSInvalidInputError(TTSError):
+    """Invalid voice, model, or text input."""
+
+
 # Display exceptions
 class DisplayError(CatoError):
     """Display/rendering error."""

@@ -25,6 +25,14 @@ categories:
   - id: productivity
     title: Productivity
     commands: [st, list]
+  
+  - id: web
+    title: Web & Search
+    commands: [web, url, url_store]
+  
+  - id: tts
+    title: Text-to-Speech
+    commands: [speak, speaklike]
 
 commands:
   - id: help
@@ -178,3 +186,43 @@ commands:
     usage: "/list [list_name]"
     category: productivity
     path: commands/list.md
+  
+  - id: web
+    title: /web
+    aliases: []
+    summary: "Search the web and add results to context"
+    usage: '/web "query" [engine]'
+    category: web
+    path: commands/web.md
+  
+  - id: url
+    title: /url
+    aliases: []
+    summary: "Fetch URL content and add to conversation"
+    usage: "/url <url>"
+    category: web
+    path: commands/url.md
+  
+  - id: url_store
+    title: /url_store
+    aliases: [urlstore]
+    summary: "Store URL content in vector store"
+    usage: "/url_store"
+    category: web
+    path: commands/url_store.md
+  
+  - id: speak
+    title: /speak
+    aliases: [s]
+    summary: "Speak the last assistant response"
+    usage: "/speak [voice] [model]"
+    category: tts
+    path: commands/speak.md
+  
+  - id: speaklike
+    title: /speaklike
+    aliases: [sl]
+    summary: "Speak with custom instructions"
+    usage: '/speaklike "instructions" [voice] [model]'
+    category: tts
+    path: commands/speaklike.md

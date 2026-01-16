@@ -7,8 +7,10 @@ that coordinate between providers, storage, and other components.
 
 from cato.services.conversation import Conversation
 from cato.services.chat import ChatService
+from cato.services.web import WebService
 
 __all__ = [
     "Conversation",
     "ChatService",
+    "WebService",
 ]

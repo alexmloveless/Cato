@@ -3,7 +3,8 @@
 import logging
 from pathlib import Path
 
-from cato.commands.base import CommandContext, CommandResult, command
+from cato.commands.base import CommandContext, CommandResult
+from cato.commands.registry import command
 from cato.storage.vector.base import VectorDocument
 from cato.storage.vector.utils import DocumentProcessor, TextChunker
 

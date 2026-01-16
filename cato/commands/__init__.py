@@ -7,6 +7,10 @@ from cato.commands.registry import CommandRegistry, command
 
 # Import command modules to trigger @command decorator registration
 import cato.commands.core  # noqa: F401
+import cato.commands.productivity  # noqa: F401
+import cato.commands.vector  # noqa: F401
+import cato.commands.web  # noqa: F401
+import cato.commands.tts  # noqa: F401
 
 __all__ = [
     "Command",

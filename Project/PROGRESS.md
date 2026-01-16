@@ -26,13 +26,13 @@ This file tracks implementation progress across agent sessions. **Agents MUST up
 
 ## Current Focus
 
-**Phase**: Phase 11 complete (✅ HELP SYSTEM)
-**Branch**: `feature/phase-11-help`
-**Next Task**: Phase 12.1 - File Commands
-**Status**: Comprehensive help system with markdown docs and LLM integration
+**Phase**: Phase 13 complete (✅ WEB & TTS)
+**Branch**: `feature/phase-13-web-tts`
+**Next Task**: Phase 14 - Thread Continuation or Phase 15 - Testing
+**Status**: Web search and TTS features implemented with help docs
 **Blockers**: None
 
-**Last Updated**: 2026-01-15T22:28:00Z
+**Last Updated**: 2026-01-16T12:00:00Z
 
 ---
 
@@ -52,7 +52,7 @@ This file tracks implementation progress across agent sessions. **Agents MUST up
 | 10 | Productivity System | ✅ Complete | `feature/phase-10-productivity` |
 | 11 | Help System | ✅ Complete | `feature/phase-11-help` |
 | 12 | File Operations | ⬜ Not Started | `feature/phase-12-files` |
-| 13 | Web & TTS | ⬜ Not Started | `feature/phase-13-web-tts` |
+| 13 | Web & TTS | ✅ Complete | `feature/phase-13-web-tts` |
 | 14 | Thread Continuation | ⬜ Not Started | `feature/phase-14-threads` |
 | 15 | Testing & Validation | ⬜ Not Started | `feature/phase-15-testing` |
 | 16 | Documentation & Polish | ⬜ Not Started | `feature/phase-16-docs` |
@@ -286,18 +286,24 @@ Status Legend: ⬜ Not Started | 🔄 In Progress | ✅ Complete | ⏸️ Blocke
 **Goal**: Optional external integrations.
 
 #### 13.1 Web Search
-- [ ] Create `cato/providers/search/__init__.py`
-- [ ] Create `cato/providers/search/base.py`
-- [ ] Create `cato/providers/search/duckduckgo.py`
-- [ ] Create `cato/services/web.py`
-- [ ] Create `cato/commands/web.py`
+- [x] Create `cato/providers/search/__init__.py`
+- [x] Create `cato/providers/search/base.py`
+- [x] Create `cato/providers/search/duckduckgo.py`
+- [x] Create `cato/services/web.py`
+- [x] Create `cato/commands/web.py`
 
 #### 13.2 TTS
-- [ ] Create `cato/providers/tts/__init__.py`
-- [ ] Create `cato/providers/tts/base.py`
-- [ ] Create `cato/providers/tts/openai.py`
-- [ ] Create `cato/services/tts.py`
-- [ ] Create `cato/commands/tts.py`
+- [x] Create `cato/providers/tts/__init__.py`
+- [x] Create `cato/providers/tts/base.py`
+- [x] Create `cato/providers/tts/openai.py`
+- [x] Create `cato/services/tts.py`
+- [x] Create `cato/commands/tts.py`
+
+#### 13.3 Help Documentation
+- [x] Create help docs for /web, /url, /url_store
+- [x] Create help docs for /speak, /speaklike
+- [x] Update help index.yaml with new categories and commands
+- [x] Update commands.md topic with new command listings
 
 ---
 
@@ -371,3 +377,4 @@ Record significant sessions here for continuity.
 | 2026-01-15 | Claude | Phase 9 complete: vector store with ChromaDB, embeddings, context retrieval |
 | 2026-01-15 | Claude | Phase 10 complete: productivity service and commands (/st, /list) |
 | 2026-01-15 | Claude | Phase 11 complete: comprehensive help system with markdown docs and /help model |
+| 2026-01-16 | Claude | Phase 13 complete: web search (/web, /url, /url_store) and TTS (/speak, /speaklike) with DuckDuckGo and OpenAI providers |

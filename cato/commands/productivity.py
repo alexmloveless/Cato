@@ -5,7 +5,8 @@ from datetime import datetime
 
 from rich.table import Table
 
-from cato.commands.base import CommandContext, CommandResult, command
+from cato.commands.base import CommandContext, CommandResult
+from cato.commands.registry import command
 from cato.services.productivity import ProductivityService
 
 logger = logging.getLogger(__name__)
