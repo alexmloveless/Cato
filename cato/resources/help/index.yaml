@@ -16,7 +16,7 @@ categories:
   
   - id: history
     title: History & Context
-    commands: [history, delete, model, showsys, loglevel]
+    commands: [history, delete, model, showsys, loglevel, continue]
   
   - id: vector
     title: Vector Store
@@ -122,7 +122,15 @@ commands:
     usage: "/loglevel [level]"
     category: history
     path: commands/loglevel.md
-  
+
+  - id: continue
+    title: /continue
+    aliases: [cont]
+    summary: "Resume a previous conversation thread"
+    usage: "/continue <session_id>"
+    category: history
+    path: commands/continue.md
+
   - id: vadd
     title: /vadd
     aliases: []

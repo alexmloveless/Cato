@@ -433,7 +433,7 @@ class ChatService:
     async def _store_exchange(self, user_message: str, assistant_message: str) -> None:
         """
         Store conversation exchange in vector store.
-        
+
         Parameters
         ----------
         user_message : str
@@ -443,13 +443,13 @@ class ChatService:
         """
         if not self.vector_store:
             return
-        
+
         # Create combined content for embedding
         combined_content = (
             f"User: {user_message}\n\n"
             f"Assistant: {assistant_message}"
         )
-        
+
         # Create document
         exchange_id = str(uuid.uuid4())
         doc = VectorDocument(
@@ -462,7 +462,82 @@ class ChatService:
                 "user_message": user_message[:500],  # Truncated for metadata
             },
         )
-        
+
         # Store in vector store
         await self.vector_store.add([doc])
         logger.debug(f"Stored exchange in vector store: {exchange_id}")
+
+    async def continue_thread(self, session_id: str) -> int:
+        """
+        Load a previous thread's conversation history into current conversation.
+
+        Retrieves all exchanges from the specified session and reconstructs
+        the conversation history. The current session_id is updated to the
+        loaded thread.
+
+        Parameters
+        ----------
+        session_id : str
+            Session/thread ID to continue.
+
+        Returns
+        -------
+        int
+            Number of exchanges loaded.
+
+        Raises
+        ------
+        ValueError
+            If no vector store is configured.
+        LLMError
+            If thread retrieval fails.
+        """
+        if not self.vector_store:
+            raise ValueError("Cannot continue thread without vector store")
+
+        try:
+            # Search for all exchanges from this session
+            # Use a generic query to match all, then filter by session_id
+            results = await self.vector_store.search(
+                query="conversation",  # Generic query
+                n_results=1000,  # Large limit to get all
+                filter={"session_id": session_id, "type": "exchange"},
+            )
+
+            if not results:
+                logger.warning(f"No exchanges found for session: {session_id}")
+                return 0
+
+            # Sort by timestamp to maintain chronological order
+            sorted_results = sorted(
+                results,
+                key=lambda r: r.document.metadata.get("timestamp", ""),
+            )
+
+            # Clear current conversation (keep system prompt)
+            self.conversation.clear()
+
+            # Reconstruct conversation from exchanges
+            for result in sorted_results:
+                content = result.document.content
+                # Parse "User: ... Assistant: ..." format
+                if "User:" in content and "Assistant:" in content:
+                    parts = content.split("\n\nAssistant:")
+                    if len(parts) == 2:
+                        user_msg = parts[0].replace("User:", "").strip()
+                        assistant_msg = parts[1].strip()
+
+                        self.conversation.add_user_message(user_msg)
+                        self.conversation.add_assistant_message(assistant_msg)
+
+            # Update session_id to the continued thread
+            self.session_id = session_id
+
+            exchange_count = len(sorted_results)
+            logger.info(f"Loaded {exchange_count} exchanges from session: {session_id}")
+            return exchange_count
+
+        except Exception as e:
+            logger.error(f"Failed to continue thread {session_id}: {e}")
+            from cato.core.exceptions import LLMError
+            raise LLMError(f"Failed to load thread: {e}") from e

@@ -11,6 +11,7 @@ import cato.commands.productivity  # noqa: F401
 import cato.commands.vector  # noqa: F401
 import cato.commands.web  # noqa: F401
 import cato.commands.tts  # noqa: F401
+import cato.commands.context  # noqa: F401
 
 __all__ = [
     "Command",
