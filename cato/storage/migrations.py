@@ -98,7 +98,7 @@ MIGRATIONS = [
             message_count INTEGER DEFAULT 0,
             metadata TEXT
         );
-        
+
         CREATE TABLE IF NOT EXISTS threads (
             id TEXT PRIMARY KEY,
             session_id TEXT NOT NULL,
@@ -107,6 +107,46 @@ MIGRATIONS = [
             metadata TEXT,
             FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
         );
+        """,
+    ),
+    Migration(
+        name="003_lists_unified_schema",
+        sql="""
+        -- Drop old list tables (clean slate as per spec)
+        DROP TABLE IF EXISTS list_items;
+        DROP TABLE IF EXISTS lists;
+
+        -- Create new unified lists table
+        CREATE TABLE IF NOT EXISTS lists (
+            name TEXT PRIMARY KEY,
+            description TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            metadata TEXT
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_lists_created ON lists(created_at);
+
+        -- Create new unified list_items table
+        CREATE TABLE IF NOT EXISTS list_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            list_name TEXT NOT NULL,
+            description TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            priority TEXT NOT NULL DEFAULT 'medium',
+            category TEXT,
+            tags TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            metadata TEXT,
+            FOREIGN KEY (list_name) REFERENCES lists(name) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_list_items_list_name ON list_items(list_name);
+        CREATE INDEX IF NOT EXISTS idx_list_items_status ON list_items(status);
+        CREATE INDEX IF NOT EXISTS idx_list_items_priority ON list_items(priority);
+        CREATE INDEX IF NOT EXISTS idx_list_items_category ON list_items(category);
+        CREATE INDEX IF NOT EXISTS idx_list_items_created ON list_items(created_at);
         """,
     ),
 ]

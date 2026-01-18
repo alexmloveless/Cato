@@ -73,17 +73,22 @@ class Database:
             self._conn = None
             logger.info("Database connection closed")
     
-    async def execute(self, query: str, params: tuple[Any, ...] = ()) -> None:
+    async def execute(self, query: str, params: tuple[Any, ...] = ()) -> aiosqlite.Cursor:
         """
         Execute a write query (INSERT, UPDATE, DELETE).
-        
+
         Parameters
         ----------
         query : str
             SQL query with ? placeholders.
         params : tuple[Any, ...], optional
             Query parameters.
-        
+
+        Returns
+        -------
+        aiosqlite.Cursor
+            Cursor with lastrowid and rowcount attributes.
+
         Raises
         ------
         StorageError
@@ -91,10 +96,11 @@ class Database:
         """
         if not self._conn:
             raise StorageError("Database not connected")
-        
+
         try:
-            async with self._conn.execute(query, params):
-                await self._conn.commit()
+            cursor = await self._conn.execute(query, params)
+            await self._conn.commit()
+            return cursor
         except Exception as e:
             logger.error(f"Query execution failed: {e}")
             raise StorageError(f"Query execution failed: {e}")

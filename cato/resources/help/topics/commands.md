@@ -37,8 +37,19 @@ Semantic search and conversation memory.
 
 Task and list management.
 
+### Tasks
 - `/st [options]` - Show tasks with filtering and sorting
-- `/list [name]` - Show lists and list items
+
+### Lists
+- `/lists` - Show overview of all lists with counts
+- `/list [name]` - Display items from one or all lists with filtering
+- `/add <list> <description>` - Add new item to list
+- `/update <id>` - Update item fields
+- `/done <id>` - Mark item as complete
+- `/move <id> <list>` - Move item to different list
+- `/remove <id>` - Remove item by ID
+- `/lclear <list>` - Clear items from list
+- `/delete-list <name>` - Delete entire list
 
 ## Web & Search
 

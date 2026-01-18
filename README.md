@@ -113,7 +113,7 @@ Commands:
 
 ### Productivity System
 
-Built-in task and list management:
+Built-in task and list management with unified list system:
 
 ```bash
 # View tasks
@@ -122,8 +122,16 @@ Built-in task and list management:
 /st -p high            # Filter by priority
 
 # Manage lists
-/list                  # Show all lists
+/lists                 # Show all lists with counts
+/list                  # Show all pending items
 /list shopping         # Show items in shopping list
+/list -S all           # Show all items including completed
+
+# Add and manage items
+/add todo "Complete report" -p high
+/done 1                # Mark item #001 as complete
+/update 5 -p urgent    # Update priority
+/move 3 shopping       # Move item to different list
 ```
 
 ### Web Search
@@ -191,7 +199,15 @@ Convert responses to audio:
 
 ### Productivity
 - `/st [options]` - Show tasks
-- `/list [name]` - Show lists/items
+- `/lists` - Show all lists with counts
+- `/list [name]` - Display items with filtering
+- `/add <list> <description>` - Add new item
+- `/done <id>` - Mark item complete
+- `/update <id>` - Update item fields
+- `/move <id> <list>` - Move item
+- `/remove <id>` - Remove item
+- `/lclear <list>` - Clear items from list
+- `/delete-list <name>` - Delete list
 
 ### Web & Search
 - `/web "query" [engine]` - Search web

@@ -7,7 +7,8 @@ Welcome to Cato, a terminal-first LLM chat client with productivity features.
 - **Chat**: Just type your message and press Enter
 - **Commands**: Start with `/` to execute commands (e.g., `/help`, `/clear`, `/exit`)
 - **History**: Use `/history` to view past exchanges
-- **Tasks**: Use `/st` to view tasks, `/list` to view lists
+- **Tasks**: Use `/st` to view tasks
+- **Lists**: Use `/list` to view lists, `/add` to add items, `/done` to mark complete
 
 ## Getting Help
 

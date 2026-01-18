@@ -132,66 +132,7 @@ class Task(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
-class List(BaseModel):
-    """
-    List entity.
-    
-    Parameters
-    ----------
-    id : str
-        Unique list identifier.
-    name : str
-        List name (unique).
-    description : str | None
-        Optional description.
-    created_at : datetime
-        Creation timestamp.
-    updated_at : datetime
-        Last update timestamp.
-    metadata : dict[str, Any]
-        Extensible metadata field.
-    """
-    
-    id: str
-    name: str
-    description: str | None = None
-    created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime = Field(default_factory=datetime.now)
-    metadata: dict[str, Any] = Field(default_factory=dict)
-
-
-class ListItem(BaseModel):
-    """
-    List item entity.
-    
-    Parameters
-    ----------
-    id : str
-        Unique item identifier.
-    list_id : str
-        Parent list ID.
-    content : str
-        Item content text.
-    checked : bool
-        Whether item is checked.
-    position : int
-        Position in list (for ordering).
-    created_at : datetime
-        Creation timestamp.
-    updated_at : datetime
-        Last update timestamp.
-    metadata : dict[str, Any]
-        Extensible metadata field.
-    """
-    
-    id: str
-    list_id: str
-    content: str
-    checked: bool = False
-    position: int = 0
-    created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime = Field(default_factory=datetime.now)
-    metadata: dict[str, Any] = Field(default_factory=dict)
+# List and ListItem models moved to cato.core.types for unified list system
 
 
 class Session(BaseModel):

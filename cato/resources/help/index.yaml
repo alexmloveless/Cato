@@ -8,6 +8,9 @@ topics:
   - id: commands
     title: All Commands
     path: topics/commands.md
+  - id: lists
+    title: List Management System
+    path: topics/lists.md
 
 categories:
   - id: core
@@ -24,7 +27,7 @@ categories:
   
   - id: productivity
     title: Productivity
-    commands: [st, list]
+    commands: [st, lists, list, add, update, done, move, remove, lclear, delete-list]
   
   - id: web
     title: Web & Search
@@ -187,13 +190,77 @@ commands:
     category: productivity
     path: commands/st.md
   
+  - id: lists
+    title: /lists
+    aliases: [ll]
+    summary: "Show overview of all lists with counts"
+    usage: "/lists"
+    category: productivity
+    path: commands/lists.md
+
   - id: list
     title: /list
-    aliases: [lists, show-lists]
-    summary: "Show lists and list items"
-    usage: "/list [list_name]"
+    aliases: [l, ls]
+    summary: "Display items from one or all lists with filtering"
+    usage: "/list [name] [options]"
     category: productivity
     path: commands/list.md
+
+  - id: add
+    title: /add
+    aliases: [a]
+    summary: "Add new item to list"
+    usage: "/add <list> <description> [options]"
+    category: productivity
+    path: commands/add.md
+
+  - id: update
+    title: /update
+    aliases: [u, edit]
+    summary: "Update item fields"
+    usage: "/update <id> [options]"
+    category: productivity
+    path: commands/update.md
+
+  - id: done
+    title: /done
+    aliases: [complete, finish]
+    summary: "Mark item as complete"
+    usage: "/done <id>"
+    category: productivity
+    path: commands/done.md
+
+  - id: move
+    title: /move
+    aliases: [mv]
+    summary: "Move item to different list"
+    usage: "/move <id> <target_list>"
+    category: productivity
+    path: commands/move.md
+
+  - id: remove
+    title: /remove
+    aliases: [rm, del]
+    summary: "Remove item by ID"
+    usage: "/remove <id>"
+    category: productivity
+    path: commands/remove.md
+
+  - id: lclear
+    title: /lclear
+    aliases: [lclean]
+    summary: "Clear items from list"
+    usage: "/lclear <list> [options]"
+    category: productivity
+    path: commands/lclear.md
+
+  - id: delete-list
+    title: /delete-list
+    aliases: [dl, rmlist]
+    summary: "Delete entire list"
+    usage: "/delete-list <name> [options]"
+    category: productivity
+    path: commands/delete-list.md
   
   - id: web
     title: /web

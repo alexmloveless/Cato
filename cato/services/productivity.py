@@ -5,8 +5,9 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from cato.storage.repositories.base import Task, List, ListItem
+from cato.storage.repositories.base import Task
 from cato.storage.service import Storage
+from cato.core.types import List, ListItem
 
 logger = logging.getLogger(__name__)
 

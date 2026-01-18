@@ -1,150 +1,116 @@
-"""List and list item repository implementations."""
+"""Unified list and list item repository implementations."""
 
 import json
 import logging
 from datetime import datetime
 from typing import Any
 
+from cato.core.types import List, ListItem
 from cato.storage.database import Database
-from cato.storage.repositories.base import List, ListItem
 
 logger = logging.getLogger(__name__)
 
 
 class ListRepository:
     """
-    SQLite-backed list repository.
-    
+    Repository for list operations.
+
     Parameters
     ----------
     db : Database
         Database connection.
     """
-    
+
     def __init__(self, db: Database) -> None:
         self._db = db
-    
-    async def get(self, id: str) -> List | None:
-        """
-        Get list by ID.
-        
-        Parameters
-        ----------
-        id : str
-            List ID.
-        
-        Returns
-        -------
-        List | None
-            List if found, None otherwise.
-        """
-        row = await self._db.fetchone("SELECT * FROM lists WHERE id = ?", (id,))
-        return self._row_to_list(row) if row else None
-    
-    async def get_by_name(self, name: str) -> List | None:
+
+    async def get_list(self, name: str) -> List | None:
         """
         Get list by name.
-        
+
         Parameters
         ----------
         name : str
             List name.
-        
+
         Returns
         -------
         List | None
             List if found, None otherwise.
         """
-        row = await self._db.fetchone("SELECT * FROM lists WHERE name = ?", (name,))
+        row = await self._db.fetchone(
+            "SELECT * FROM lists WHERE name = ?",
+            (name,)
+        )
         return self._row_to_list(row) if row else None
-    
-    async def get_all(self) -> list[List]:
-        """
-        Get all lists.
-        
-        Returns
-        -------
-        list[List]
-            List of all lists.
-        """
-        rows = await self._db.fetchall("SELECT * FROM lists ORDER BY created_at DESC")
+
+    async def get_all_lists(self) -> list[List]:
+        """Get all lists ordered by name."""
+        rows = await self._db.fetchall(
+            "SELECT * FROM lists ORDER BY name ASC"
+        )
         return [self._row_to_list(row) for row in rows]
-    
-    async def create(self, lst: List) -> str:
+
+    async def create_list(self, lst: List) -> str:
         """
         Create new list.
-        
+
         Parameters
         ----------
         lst : List
             List to create.
-        
+
         Returns
         -------
         str
-            Created list ID.
+            List name.
         """
+        now = datetime.now().isoformat()
         await self._db.execute(
             """
-            INSERT INTO lists (id, name, description, created_at, updated_at, metadata)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (
-                lst.id,
-                lst.name,
-                lst.description,
-                lst.created_at.isoformat(),
-                lst.updated_at.isoformat(),
-                json.dumps(lst.metadata) if lst.metadata else None,
-            ),
-        )
-        logger.info(f"Created list: {lst.id}")
-        return lst.id
-    
-    async def update(self, lst: List) -> None:
-        """
-        Update existing list.
-        
-        Parameters
-        ----------
-        lst : List
-            List to update.
-        """
-        lst.updated_at = datetime.now()
-        
-        await self._db.execute(
-            """
-            UPDATE lists SET name = ?, description = ?, updated_at = ?, metadata = ?
-            WHERE id = ?
+            INSERT INTO lists (name, description, created_at, updated_at, metadata)
+            VALUES (?, ?, ?, ?, ?)
             """,
             (
                 lst.name,
                 lst.description,
-                lst.updated_at.isoformat(),
+                now,
+                now,
                 json.dumps(lst.metadata) if lst.metadata else None,
-                lst.id,
-            ),
+            )
         )
-        logger.info(f"Updated list: {lst.id}")
-    
-    async def delete(self, id: str) -> None:
-        """
-        Delete list by ID.
-        
-        Cascades to all list items due to foreign key constraint.
-        
-        Parameters
-        ----------
-        id : str
-            List ID to delete.
-        """
-        await self._db.execute("DELETE FROM lists WHERE id = ?", (id,))
-        logger.info(f"Deleted list: {id}")
-    
+        logger.info(f"Created list: {lst.name}")
+        return lst.name
+
+    async def delete_list(self, name: str) -> None:
+        """Delete list by name (cascades to items)."""
+        await self._db.execute("DELETE FROM lists WHERE name = ?", (name,))
+        logger.info(f"Deleted list: {name}")
+
+    async def count_items(self, list_name: str) -> int:
+        """Count items in a list."""
+        row = await self._db.fetchone(
+            "SELECT COUNT(*) as count FROM list_items WHERE list_name = ?",
+            (list_name,)
+        )
+        return row["count"] if row else 0
+
+    async def count_items_by_status(
+        self, list_name: str, status: str
+    ) -> int:
+        """Count items with specific status in a list."""
+        row = await self._db.fetchone(
+            """
+            SELECT COUNT(*) as count FROM list_items
+            WHERE list_name = ? AND status = ?
+            """,
+            (list_name, status)
+        )
+        return row["count"] if row else 0
+
     def _row_to_list(self, row: dict[str, Any]) -> List:
-        """Convert database row to List entity."""
+        """Convert DB row to List entity."""
         return List(
-            id=row["id"],
             name=row["name"],
             description=row["description"],
             created_at=datetime.fromisoformat(row["created_at"]),
@@ -155,137 +121,226 @@ class ListRepository:
 
 class ListItemRepository:
     """
-    SQLite-backed list item repository.
-    
+    Repository for list item operations.
+
     Parameters
     ----------
     db : Database
         Database connection.
     """
-    
+
     def __init__(self, db: Database) -> None:
         self._db = db
-    
-    async def get(self, id: str) -> ListItem | None:
+
+    async def get(self, id: int) -> ListItem | None:
         """
-        Get list item by ID.
-        
+        Get item by ID.
+
         Parameters
         ----------
-        id : str
+        id : int
             Item ID.
-        
+
         Returns
         -------
         ListItem | None
-            Item if found, None otherwise.
+            Item if found.
         """
-        row = await self._db.fetchone("SELECT * FROM list_items WHERE id = ?", (id,))
+        row = await self._db.fetchone(
+            "SELECT * FROM list_items WHERE id = ?",
+            (id,)
+        )
         return self._row_to_item(row) if row else None
-    
-    async def get_all(self, list_id: str) -> list[ListItem]:
+
+    async def get_all(
+        self,
+        list_name: str | None = None,
+        status: list[str] | None = None,
+        priority: str | None = None,
+        category: str | None = None,
+        tag: str | None = None,
+        sort_by: str = "priority",
+        order: str = "asc",
+    ) -> list[ListItem]:
         """
-        Get all items in a list.
-        
+        Get items with optional filters.
+
         Parameters
         ----------
-        list_id : str
-            Parent list ID.
-        
+        list_name : str | None
+            Filter by list name.
+        status : list[str] | None
+            Filter by status values.
+        priority : str | None
+            Filter by priority.
+        category : str | None
+            Filter by category.
+        tag : str | None
+            Filter by tag (matches any).
+        sort_by : str
+            Sort field (priority, status, category, created_at, id).
+        order : str
+            Sort order (asc, desc).
+
         Returns
         -------
         list[ListItem]
-            List of items ordered by position.
+            Matching items.
         """
-        rows = await self._db.fetchall(
-            "SELECT * FROM list_items WHERE list_id = ? ORDER BY position ASC",
-            (list_id,),
-        )
+        query = "SELECT * FROM list_items WHERE 1=1"
+        params: list[Any] = []
+
+        if list_name:
+            query += " AND list_name = ?"
+            params.append(list_name)
+
+        if status:
+            placeholders = ",".join("?" * len(status))
+            query += f" AND status IN ({placeholders})"
+            params.extend(status)
+
+        if priority:
+            query += " AND priority = ?"
+            params.append(priority)
+
+        if category:
+            query += " AND category = ?"
+            params.append(category)
+
+        if tag:
+            # Tags stored as JSON array, use JSON functions
+            query += " AND EXISTS (SELECT 1 FROM json_each(list_items.tags) WHERE value = ?)"
+            params.append(tag)
+
+        # Validate sort field
+        valid_sorts = {"priority", "status", "category", "created_at", "id"}
+        if sort_by not in valid_sorts:
+            sort_by = "priority"
+
+        # Map sort field to column
+        sort_column = sort_by
+        if sort_by == "priority":
+            # Sort by priority order (urgent=1, low=4)
+            sort_column = """
+            CASE priority
+                WHEN 'urgent' THEN 1
+                WHEN 'high' THEN 2
+                WHEN 'medium' THEN 3
+                WHEN 'low' THEN 4
+            END
+            """
+
+        order_dir = "DESC" if order.lower() == "desc" else "ASC"
+        query += f" ORDER BY {sort_column} {order_dir}, created_at DESC"
+
+        rows = await self._db.fetchall(query, tuple(params))
         return [self._row_to_item(row) for row in rows]
-    
-    async def create(self, item: ListItem) -> str:
+
+    async def create(self, item: ListItem) -> int:
         """
-        Create new list item.
-        
+        Create new item.
+
         Parameters
         ----------
         item : ListItem
             Item to create.
-        
+
         Returns
         -------
-        str
-            Created item ID.
+        int
+            New item ID.
         """
-        await self._db.execute(
+        now = datetime.now().isoformat()
+        cursor = await self._db.execute(
             """
             INSERT INTO list_items (
-                id, list_id, content, checked, position,
-                created_at, updated_at, metadata
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                list_name, description, status, priority, category,
+                tags, created_at, updated_at, metadata
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                item.id,
-                item.list_id,
-                item.content,
-                1 if item.checked else 0,
-                item.position,
-                item.created_at.isoformat(),
-                item.updated_at.isoformat(),
+                item.list_name,
+                item.description,
+                item.status,
+                item.priority,
+                item.category,
+                json.dumps(item.tags) if item.tags else "[]",
+                now,
+                now,
                 json.dumps(item.metadata) if item.metadata else None,
-            ),
+            )
         )
-        logger.info(f"Created list item: {item.id}")
-        return item.id
-    
+        item_id = cursor.lastrowid
+        logger.info(f"Created list item: {item_id}")
+        return item_id
+
     async def update(self, item: ListItem) -> None:
         """
-        Update existing list item.
-        
+        Update existing item.
+
         Parameters
         ----------
         item : ListItem
-            Item to update.
+            Item to update (must have id).
         """
+        if not item.id:
+            raise ValueError("Cannot update item without ID")
+
         item.updated_at = datetime.now()
-        
         await self._db.execute(
             """
             UPDATE list_items SET
-                content = ?, checked = ?, position = ?, updated_at = ?, metadata = ?
+                list_name = ?, description = ?, status = ?, priority = ?,
+                category = ?, tags = ?, updated_at = ?, metadata = ?
             WHERE id = ?
             """,
             (
-                item.content,
-                1 if item.checked else 0,
-                item.position,
+                item.list_name,
+                item.description,
+                item.status,
+                item.priority,
+                item.category,
+                json.dumps(item.tags) if item.tags else "[]",
                 item.updated_at.isoformat(),
                 json.dumps(item.metadata) if item.metadata else None,
                 item.id,
-            ),
+            )
         )
         logger.info(f"Updated list item: {item.id}")
-    
-    async def delete(self, id: str) -> None:
-        """
-        Delete list item by ID.
-        
-        Parameters
-        ----------
-        id : str
-            Item ID to delete.
-        """
+
+    async def delete(self, id: int) -> None:
+        """Delete item by ID."""
         await self._db.execute("DELETE FROM list_items WHERE id = ?", (id,))
         logger.info(f"Deleted list item: {id}")
-    
+
+    async def delete_by_status(
+        self, list_name: str, status: str
+    ) -> int:
+        """
+        Delete items by list and status.
+
+        Returns
+        -------
+        int
+            Number of items deleted.
+        """
+        cursor = await self._db.execute(
+            "DELETE FROM list_items WHERE list_name = ? AND status = ?",
+            (list_name, status)
+        )
+        # SQLite doesn't have rowcount on cursor, so we need to check rows affected
+        return cursor.rowcount if hasattr(cursor, 'rowcount') else 0
+
     def _row_to_item(self, row: dict[str, Any]) -> ListItem:
-        """Convert database row to ListItem entity."""
+        """Convert DB row to ListItem entity."""
         return ListItem(
             id=row["id"],
-            list_id=row["list_id"],
-            content=row["content"],
-            checked=bool(row["checked"]),
-            position=row["position"],
+            list_name=row["list_name"],
+            description=row["description"],
+            status=row["status"],
+            priority=row["priority"],
+            category=row["category"],
+            tags=json.loads(row["tags"]) if row["tags"] else [],
             created_at=datetime.fromisoformat(row["created_at"]),
             updated_at=datetime.fromisoformat(row["updated_at"]),
             metadata=json.loads(row["metadata"]) if row["metadata"] else {},
