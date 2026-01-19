@@ -82,6 +82,9 @@ class ChatService:
         self.conversation = Conversation(
             system_prompt=system_prompt or self._load_system_prompt()
         )
+        # Context display mode: "off", "summary", "on"
+        self.context_display_mode = "off"
+        self._last_context: list[str] = []
         logger.info(
             f"ChatService initialized with provider={provider.name}, model={provider.model}, "
             f"vector_store={'enabled' if vector_store else 'disabled'}, session_id={self.session_id}"
@@ -196,6 +199,7 @@ class ChatService:
         if self.vector_store:
             try:
                 context = await self._retrieve_context(user_message)
+                self._last_context = context  # Store for display
                 if context:
                     logger.info(f"Retrieved {len(context)} context items from vector store")
                     # Add context as a system message temporarily (not persisted)
@@ -203,6 +207,7 @@ class ChatService:
                     self.conversation.add_user_message(f"[Context from previous conversations]\n{context_text}")
             except Exception as e:
                 logger.warning(f"Failed to retrieve context from vector store: {e}")
+                self._last_context = []
         
         # Add user message to history
         self.conversation.add_user_message(user_message)

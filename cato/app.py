@@ -203,6 +203,7 @@ class Application:
             vector_store=self.vector_store,
             storage=self.storage,
             display=self.display,
+            chat=self.chat_service,
             registry=self.registry,
         )
     
@@ -257,6 +258,12 @@ class Application:
             with self.display.spinner("Thinking..."):
                 # Get response from LLM
                 result = await self.chat_service.send_message(user_input)
+
+            # Display context based on mode BEFORE showing response
+            if self.chat_service.context_display_mode == "on" and self.chat_service._last_context:
+                self.display.show_context_full(self.chat_service._last_context)
+            elif self.chat_service.context_display_mode == "summary" and self.chat_service._last_context:
+                self.display.show_context_summary(len(self.chat_service._last_context))
 
             # Show assistant response
             self.display.show_message(

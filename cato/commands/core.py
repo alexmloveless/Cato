@@ -161,10 +161,18 @@ async def clear_command(ctx: CommandContext, *args: str) -> CommandResult:
     CommandResult
         Confirmation message.
     """
-    # TODO: Implement conversation clearing when conversation service is ready
+    # Clear conversation messages (preserves system prompt)
+    ctx.conversation.clear()
+    
+    # Clear terminal screen
+    ctx.display.clear()
+    
+    # Show welcome message
+    ctx.display.show_welcome()
+    
     return CommandResult(
         success=True,
-        message="Conversation clearing not yet implemented."
+        message="Conversation cleared"
     )
 
 

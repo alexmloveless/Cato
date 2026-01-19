@@ -51,6 +51,8 @@ class CommandContext:
         Storage service.
     display : Display
         Display implementation.
+    chat : ChatService
+        Chat service for accessing context state.
     cwd : Path
         Current working directory.
     session_id : str
@@ -67,6 +69,7 @@ class CommandContext:
     vector_store: Any | None  # Will be VectorStore
     storage: Any  # Will be Storage
     display: Any  # Will be Display
+    chat: Any  # Will be ChatService
     cwd: Path = field(default_factory=lambda: Path.cwd())
     session_id: str = ""
     thread_id: str | None = None

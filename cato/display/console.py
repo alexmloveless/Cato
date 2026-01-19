@@ -138,6 +138,47 @@ class RichDisplay:
             border_style="dim",
         )
         self._console.print(panel)
+    
+    def show_context_full(self, context_items: list[str]) -> None:
+        """
+        Display full context excerpts.
+        
+        Parameters
+        ----------
+        context_items : list[str]
+            Context items to display.
+        """
+        if not context_items:
+            return
+        
+        context_text = "\n\n[dim]---[/dim]\n\n".join([
+            f"[cyan]Context {i+1}:[/cyan]\n{item}"
+            for i, item in enumerate(context_items)
+        ])
+        
+        panel = Panel(
+            context_text,
+            title="📚 Retrieved Context",
+            border_style="cyan",
+            padding=(1, 2),
+        )
+        self._console.print(panel)
+        self._console.print()  # Add spacing
+    
+    def show_context_summary(self, count: int) -> None:
+        """
+        Display context count summary.
+        
+        Parameters
+        ----------
+        count : int
+            Number of context items retrieved.
+        """
+        if count > 0:
+            self._console.print(
+                f"[dim cyan]📚 Retrieved {count} context item{'s' if count != 1 else ''}[/dim cyan]"
+            )
+            self._console.print()  # Add spacing
 
 
 class RichSpinnerContext:

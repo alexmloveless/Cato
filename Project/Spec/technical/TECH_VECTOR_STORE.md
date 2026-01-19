@@ -648,6 +648,133 @@ class ContextRetriever:
         return context
 ```
 
+### Context Display Mode
+The `/showcontext` command controls whether and how retrieved context is displayed to the user.
+
+**Display Modes:**
+- `off` (default): Context is injected into prompts but not shown to user
+- `summary`: Show count of context items retrieved (e.g., "Retrieved 3 context items")
+- `on`: Display full context excerpts before each response
+
+**Implementation Requirements:**
+
+1. **State Management in ChatService**
+   - Add `context_display_mode: str` attribute (default: "off")
+   - Store last retrieved context in `_last_context: list[str]` for display
+   - Modes: "off", "summary", "on"
+
+2. **Context Storage During Retrieval**
+   ```python
+   class ChatService:
+       def __init__(self, ...) -> None:
+           # ... existing init ...
+           self.context_display_mode = "off"
+           self._last_context: list[str] = []
+       
+       async def send_message(self, user_message: str, ...) -> CompletionResult:
+           # After context retrieval
+           if self.vector_store:
+               context = await self._retrieve_context(user_message)
+               self._last_context = context  # Store for display
+               # ... inject into prompt ...
+   ```
+
+3. **Display Logic in Application Layer**
+   ```python
+   # In app.py or wherever chat.send_message() is called
+   result = await chat.send_message(user_message)
+   
+   # Display context based on mode BEFORE showing response
+   if chat.context_display_mode == "on" and chat._last_context:
+       display.show_context_full(chat._last_context)
+   elif chat.context_display_mode == "summary" and chat._last_context:
+       display.show_context_summary(len(chat._last_context))
+   
+   # Then show LLM response
+   display.show_response(result.content)
+   ```
+
+4. **Display Methods**
+   ```python
+   # In display/console.py
+   class RichConsole:
+       def show_context_full(self, context_items: list[str]) -> None:
+           """Display full context excerpts."""
+           panel = Panel(
+               "\n\n---\n\n".join([
+                   f"[cyan]Context {i+1}:[/cyan]\n{item}"
+                   for i, item in enumerate(context_items)
+               ]),
+               title="📚 Retrieved Context",
+               border_style="cyan",
+           )
+           self._console.print(panel)
+       
+       def show_context_summary(self, count: int) -> None:
+           """Display context count summary."""
+           self._console.print(
+               f"[dim cyan]📚 Retrieved {count} context item{'s' if count != 1 else ''}[/dim cyan]"
+           )
+   ```
+
+5. **/showcontext Command**
+   ```python
+   # In commands/context.py
+   @command(name="showcontext")
+   async def showcontext_command(ctx: CommandContext, *args: str) -> CommandResult:
+       """
+       Toggle or set context display mode.
+       
+       Usage:
+         /showcontext          # Toggle off -> summary -> on -> off
+         /showcontext on       # Enable full context display
+         /showcontext off      # Disable context display
+         /showcontext summary  # Show only count
+       """
+       if not ctx.vector_store:
+           return CommandResult(
+               success=False,
+               message="Context display requires vector store to be enabled."
+           )
+       
+       # Determine new mode
+       if args:
+           mode = args[0].lower()
+           if mode not in ["on", "off", "summary"]:
+               return CommandResult(
+                   success=False,
+                   message="Invalid mode. Use: on, off, or summary"
+               )
+       else:
+           # Toggle through modes
+           modes = ["off", "summary", "on"]
+           current_idx = modes.index(ctx.chat.context_display_mode)
+           mode = modes[(current_idx + 1) % len(modes)]
+       
+       ctx.chat.context_display_mode = mode
+       
+       return CommandResult(
+           success=True,
+           message=f"✓ Context display: {mode}"
+       )
+   ```
+
+6. **CommandContext Extension**
+   - Add `chat: ChatService` to `CommandContext` dataclass
+   - This allows commands to access and modify chat service state
+   ```python
+   @dataclass
+   class CommandContext:
+       config: CatoConfig
+       conversation: Conversation
+       llm: LLMProvider
+       vector_store: VectorStore | None
+       storage: Storage
+       display: Display
+       chat: ChatService  # Add this field
+       # ... existing fields ...
+   ```
+
 ## Configuration
 
 ### Vector Store Config

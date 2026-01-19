@@ -19,7 +19,7 @@ categories:
   
   - id: history
     title: History & Context
-    commands: [history, delete, model, showsys, loglevel, continue]
+    commands: [history, delete, model, showsys, loglevel, continue, showcontext]
   
   - id: vector
     title: Vector Store
@@ -133,6 +133,14 @@ commands:
     usage: "/continue <session_id>"
     category: history
     path: commands/continue.md
+
+  - id: showcontext
+    title: /showcontext
+    aliases: []
+    summary: "Toggle context display mode"
+    usage: "/showcontext [on|off|summary]"
+    category: history
+    path: commands/showcontext.md
 
   - id: vadd
     title: /vadd
