@@ -1,0 +1,3 @@
+- Single list item view
+- Double ctrl-c to exit, single = reset prompt
+- Backlog and change process
