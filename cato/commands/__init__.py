@@ -14,6 +14,7 @@ import cato.commands.web  # noqa: F401
 import cato.commands.tts  # noqa: F401
 import cato.commands.context  # noqa: F401
 import cato.commands.files  # noqa: F401
+import cato.commands.export  # noqa: F401
 
 __all__ = [
     "Command",

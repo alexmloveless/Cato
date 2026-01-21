@@ -37,6 +37,10 @@ categories:
     title: Text-to-Speech
     commands: [speak, speaklike]
 
+  - id: export
+    title: Export Commands
+    commands: [writecode, writejson, writemd, writemdall, writeresp, append, copy]
+
 commands:
   - id: help
     title: /help
@@ -309,3 +313,59 @@ commands:
     usage: '/speaklike "instructions" [voice] [model]'
     category: tts
     path: commands/speaklike.md
+
+  - id: writecode
+    title: /writecode
+    aliases: [wcode]
+    summary: "Extract code blocks from last response"
+    usage: "/writecode <file>"
+    category: export
+    path: commands/writecode.md
+
+  - id: writejson
+    title: /writejson
+    aliases: [wjson]
+    summary: "Export conversation to JSON"
+    usage: "/writejson <file>"
+    category: export
+    path: commands/writejson.md
+
+  - id: writemd
+    title: /writemd
+    aliases: [w]
+    summary: "Export conversation to Markdown"
+    usage: "/writemd <file>"
+    category: export
+    path: commands/writemd.md
+
+  - id: writemdall
+    title: /writemdall
+    aliases: [wmdall]
+    summary: "Export full conversation including system prompts"
+    usage: "/writemdall <file>"
+    category: export
+    path: commands/writemdall.md
+
+  - id: writeresp
+    title: /writeresp
+    aliases: [wresp]
+    summary: "Export last exchange to file"
+    usage: "/writeresp <file> [format]"
+    category: export
+    path: commands/writeresp.md
+
+  - id: append
+    title: /append
+    aliases: []
+    summary: "Append last exchange or custom text to file"
+    usage: "/append <file> [text]"
+    category: export
+    path: commands/append.md
+
+  - id: copy
+    title: /copy
+    aliases: []
+    summary: "Copy last response to clipboard"
+    usage: "/copy"
+    category: export
+    path: commands/copy.md
