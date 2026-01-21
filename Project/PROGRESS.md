@@ -32,7 +32,7 @@ This file tracks implementation progress across agent sessions. **Agents MUST up
 **Status**: Web search and TTS features implemented with help docs
 **Blockers**: None
 
-**Last Updated**: 2026-01-16T12:00:00Z
+**Last Updated**: 2026-01-21T11:45:00Z
 
 ---
 
@@ -378,3 +378,4 @@ Record significant sessions here for continuity.
 | 2026-01-15 | Claude | Phase 10 complete: productivity service and commands (/st, /list) |
 | 2026-01-15 | Claude | Phase 11 complete: comprehensive help system with markdown docs and /help model |
 | 2026-01-16 | Claude | Phase 13 complete: web search (/web, /url, /url_store) and TTS (/speak, /speaklike) with DuckDuckGo and OpenAI providers |
+| 2026-01-21 | Warp | Improved Rich output wrapping; added configurable display.soft_wrap and display.force_terminal |

@@ -32,7 +32,12 @@ class RichDisplay:
     def __init__(self, config: DisplayConfig) -> None:
         self._config = config
         theme = load_theme(config.theme, config.style_overrides)
-        self._console = Console(theme=theme, width=config.max_width, force_terminal=True)
+        self._console = Console(
+            theme=theme,
+            width=config.max_width,
+            soft_wrap=config.soft_wrap,
+            force_terminal=config.force_terminal,
+        )
     
     def show_message(self, message: DisplayMessage) -> None:
         """Display a message with role-based styling."""
@@ -48,15 +53,21 @@ class RichDisplay:
 
         if message.role == "assistant" and self._config.markdown_enabled:
             self._console.print(prefix, style=style)
-            self._console.print(Markdown(message.content, code_theme=self._config.code_theme))
+            self._console.print(
+                Markdown(message.content, code_theme=self._config.code_theme),
+                soft_wrap=self._config.soft_wrap,
+            )
             # Add horizontal rule after assistant response
             self._console.print()
             self._console.print(Rule(style="dim"))
-        else:
-            self._console.print(f"{prefix} {message.content}", style=style)
-            # Add spacing after user messages
-            if message.role == "user":
-                self._console.print()
+            return
+
+        # Non-markdown / non-assistant: avoid composing a single long f-string so Rich can wrap cleanly.
+        self._console.print(prefix, message.content, style=style, soft_wrap=self._config.soft_wrap)
+
+        # Add spacing after user messages
+        if message.role == "user":
+            self._console.print()
     
     def _get_prefix(self, role: str) -> str:
         """Get display prefix for role."""

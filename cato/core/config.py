@@ -118,6 +118,10 @@ class DisplayConfig(BaseModel):
     prompt_style: str | None = None
     input_style: str | None = None
 
+    # Rich console behavior
+    soft_wrap: bool = True
+    force_terminal: bool = False
+
 
 class LoggingConfig(BaseModel):
     """Logging configuration."""

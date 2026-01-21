@@ -270,6 +270,8 @@ display:
   markdown_enabled: true        # Render markdown formatting
   code_theme: "monokai"        # Syntax highlighting theme
   max_width: null              # Max width (null = terminal width)
+  soft_wrap: true              # Prefer natural wrapping (less padding/"blocky" wraps)
+  force_terminal: false        # Force ANSI even when stdout isn't a TTY
 ```
 
 **Built-in themes**:

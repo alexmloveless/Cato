@@ -128,6 +128,12 @@ display:
   # Max render width (null = terminal width)
   max_width: null
   
+  # Rich wrapping behavior
+  # - soft_wrap: avoid padding/truncation artifacts and wrap more naturally
+  # - force_terminal: only enable if you need ANSI styling when output is not a TTY
+  soft_wrap: true
+  force_terminal: false
+  
   # Show timestamps on messages
   timestamps: false
   

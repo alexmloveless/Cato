@@ -180,7 +180,7 @@ async def attach_command(ctx: CommandContext, *args: str) -> CommandResult:
         formatted_content += "\n\n"
 
     # Add to conversation history
-    ctx.chat_service.conversation.add_user_message(formatted_content.strip())
+    ctx.chat.conversation.add_user_message(formatted_content.strip())
 
     # Build success message
     success_msg = f"✓ Attached {len(attached_files)} file(s):\n"
