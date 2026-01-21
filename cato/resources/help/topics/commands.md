@@ -66,6 +66,18 @@ Convert responses to speech.
 - `/speak [voice] [model]` - Speak the last assistant response
 - `/speaklike "instructions" [voice] [model]` - Speak with custom instructions
 
+## Export Commands
+
+Write conversation content to files or the clipboard.
+
+- `/writecode <file>` - Extract code blocks from last response
+- `/writejson <file>` - Export full conversation to JSON
+- `/writemd <file>` (`/w`) - Export conversation to Markdown
+- `/writemdall <file>` - Export conversation including system prompt
+- `/writeresp <file> [json|md]` - Export last exchange
+- `/append <file> [text]` - Append last exchange or custom text
+- `/copy` - Copy last assistant response to clipboard
+
 ---
 
 Use `/help <command>` for detailed help on any command.
